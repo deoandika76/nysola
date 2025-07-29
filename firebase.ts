@@ -16,7 +16,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
-// Generate wallet & simpan ke Firebase
+// Generate wallet dan simpan ke Firestore
 export const generateWallet = async () => {
   const wallet = ethers.Wallet.createRandom();
 
@@ -30,12 +30,17 @@ export const generateWallet = async () => {
   return walletData;
 };
 
-// Ambil semua wallet dari Firestore
+// Ambil semua wallet dari Firestore (fix TypeScript)
 export const fetchWallets = async () => {
   const snapshot = await getDocs(collection(db, 'wallets'));
-  const wallets = snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
+  const wallets = snapshot.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      address: data.address,
+      privateKey: data.privateKey,
+      createdAt: data.createdAt,
+    };
+  });
   return wallets;
 };
