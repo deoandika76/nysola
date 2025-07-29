@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { ethers } from 'ethers';
-import { db, fetchWallets } from '@/firebase';
+import { db, fetchWallets } from '../../firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const wallets = await fetchWallets();
     const provider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_SEPOLIA_RPC!);
-    const dummyReceiver = '0x122CAa6b1cD0F4E3b30bfB85F22ec6c777Ee4c04'; // Ganti kalau perlu
+    const dummyReceiver = '0x122CAa6b1cD0F4E3b30bfB85F22ec6c777Ee4c04';
 
     const results: any[] = [];
 
@@ -25,7 +25,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         await tx.wait();
 
-        // Simpan log ke Firestore (optional)
         await addDoc(collection(db, 'autoTaskLogs'), {
           walletAddress: wallet.address,
           txHash: tx.hash,
