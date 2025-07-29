@@ -1,13 +1,13 @@
 // pages/api/scheduler.ts
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { db, fetchWallets } from '../../firebase'; // ✅ fix path import
+import { db, fetchWallets } from '@/firebase';
 import { ethers } from 'ethers';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Only POST allowed' });
+  if (req.method !== 'GET') {
+    return res.status(405).json({ message: 'Only GET method allowed' });
   }
 
   try {
@@ -27,21 +27,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         await tx.wait();
 
-        // Simpan ke logs
-        await addDoc(collection(db, 'autoTaskLogs'), {
-          walletAddress: wallet.address,
-          txHash: tx.hash,
-          timestamp: Timestamp.now(),
-          status: 'success',
-        });
-
-        // Simpan ke txHistory
         await addDoc(collection(db, 'txHistory'), {
           from: wallet.address,
           to: dummyReceiver,
           value: '0.0001',
           txHash: tx.hash,
           createdAt: Timestamp.now(),
+          via: 'scheduler',
         });
 
         results.push({ address: wallet.address, txHash: tx.hash, status: 'success' });
@@ -50,8 +42,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    res.status(200).json({ message: 'Scheduler task executed', results });
+    res.status(200).json({ message: 'Scheduler executed', results });
   } catch (err: any) {
-    res.status(500).json({ message: 'Scheduler task failed', error: err.message });
+    res.status(500).json({ message: 'Scheduler failed', error: err.message });
   }
 }
