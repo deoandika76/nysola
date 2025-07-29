@@ -1,12 +1,14 @@
-import Head from 'next/head'
+import Head from 'next/head';
+import Layout from '../components/Layout';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-carbon text-white flex items-center justify-center">
+    <Layout>
       <Head>
-        <title>Nysola</title>
+        <title>Nysola Dashboard</title>
       </Head>
-      <h1 className="text-4xl font-bold text-orchid">Welcome to Nysola</h1>
-    </div>
-  )
+      <h1 className="text-3xl font-bold text-orchid">Welcome to Nysola</h1>
+      <p className="text-gray-400 mt-4">Autonomous AI Web3 cuan hunter interface 🚀</p>
+    </Layout>
+  );
 }
