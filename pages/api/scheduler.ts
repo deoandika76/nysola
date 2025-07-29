@@ -1,7 +1,7 @@
 // pages/api/scheduler.ts
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { db, fetchWallets } from '@/firebase';
+import { db, fetchWallets } from '../../firebase'; // 🔧 Ganti dari '@/firebase' ke path relatif!
 import { ethers } from 'ethers';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
@@ -33,7 +33,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           value: '0.0001',
           txHash: tx.hash,
           createdAt: Timestamp.now(),
-          via: 'scheduler',
         });
 
         results.push({ address: wallet.address, txHash: tx.hash, status: 'success' });
