@@ -1,4 +1,4 @@
-// components/Sidebar.tsx
+// components/Sidebar.tsx :)
 
 import Link from 'next/link';
 
