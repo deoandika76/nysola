@@ -1,6 +1,8 @@
+// pages/api/autoTask.ts
+
 import { NextApiRequest, NextApiResponse } from 'next';
 import { ethers } from 'ethers';
-import { db, fetchWallets } from '../../firebase';
+import { db, fetchWallets } from '@/firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -25,11 +27,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         await tx.wait();
 
+        // ✅ Simpan ke logs
         await addDoc(collection(db, 'autoTaskLogs'), {
           walletAddress: wallet.address,
           txHash: tx.hash,
           timestamp: Timestamp.now(),
           status: 'success',
+        });
+
+        // ✅ Simpan ke txHistory
+        await addDoc(collection(db, 'txHistory'), {
+          from: wallet.address,
+          to: dummyReceiver,
+          value: '0.0001',
+          txHash: tx.hash,
+          createdAt: Timestamp.now(),
         });
 
         results.push({ address: wallet.address, txHash: tx.hash, status: 'success' });
