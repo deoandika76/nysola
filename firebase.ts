@@ -1,18 +1,14 @@
-// firebase.ts
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: "AIzaSyCeCIq29L6vgE83reeqAh68Wd01jCF2BmA",
+  authDomain: "nysola-62660.firebaseapp.com",
+  projectId: "nysola-62660",
+  storageBucket: "nysola-62660.appspot.com",
+  messagingSenderId: "18232862863",
+  appId: "1:18232862863:web:928cafcdf115e6d258a8fa"
 };
 
-// Cegah inisialisasi ulang saat hot-reload di Next.js
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-
-// Export Firestore biar bisa dipakai di mana-mana
+const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
