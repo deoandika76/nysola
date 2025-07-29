@@ -1,21 +1,16 @@
 // pages/api/scheduler.ts
-
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { db, fetchWallets } from '../../firebase'; // 🔧 Ganti dari '@/firebase' ke path relatif!
+import { db, fetchWallets } from '@/firebase';
 import { ethers } from 'ethers';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ message: 'Only GET method allowed' });
-  }
-
   try {
-    const wallets = await fetchWallets();
     const provider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_SEPOLIA_RPC!);
     const dummyReceiver = '0x122CAa6b1cD0F4E3b30bfB85F22ec6c777Ee4c04';
+    const wallets = await fetchWallets();
 
-    const results: any[] = [];
+    const results = [];
 
     for (const wallet of wallets) {
       try {
@@ -24,25 +19,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           to: dummyReceiver,
           value: ethers.parseEther('0.0001'),
         });
-
         await tx.wait();
 
         await addDoc(collection(db, 'txHistory'), {
           from: wallet.address,
           to: dummyReceiver,
-          value: '0.0001',
           txHash: tx.hash,
+          value: '0.0001',
           createdAt: Timestamp.now(),
         });
 
-        results.push({ address: wallet.address, txHash: tx.hash, status: 'success' });
+        results.push({ address: wallet.address, status: 'success', hash: tx.hash });
       } catch (err: any) {
-        results.push({ address: wallet.address, error: err.message, status: 'failed' });
+        results.push({ address: wallet.address, status: 'failed', error: err.message });
       }
     }
 
-    res.status(200).json({ message: 'Scheduler executed', results });
-  } catch (err: any) {
-    res.status(500).json({ message: 'Scheduler failed', error: err.message });
+    res.status(200).json({ message: 'Scheduled task executed', results });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
   }
 }
