@@ -1,7 +1,7 @@
 // pages/api/scheduleTx.ts
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import { db } from '@/firebase';
+import { db } from '../../firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
