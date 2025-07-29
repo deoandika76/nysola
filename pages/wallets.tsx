@@ -1,49 +1,36 @@
-import Layout from '../components/Layout';
+import { useState } from 'react';
 
-const dummyWallets = [
-  {
-    address: '0x1234...abcd',
-    eligible: true,
-    balance: '1.24 ETH',
-    reputation: 92,
-  },
-  {
-    address: '0xaBcd...7788',
-    eligible: false,
-    balance: '0.02 ETH',
-    reputation: 54,
-  },
-  {
-    address: '0xdeaf...beef',
-    eligible: true,
-    balance: '0.73 ETH',
-    reputation: 80,
-  },
-];
+export default function WalletsPage() {
+  const [result, setResult] = useState<string | null>(null);
 
-export default function Wallets() {
+  const handleGenerate = async () => {
+    try {
+      const res = await fetch('/api/generate-wallet', {
+        method: 'POST',
+      });
+
+      const data = await res.json();
+      setResult(JSON.stringify(data, null, 2));
+    } catch (err) {
+      setResult('❌ Error generating wallet');
+    }
+  };
+
   return (
-    <Layout>
-      <h1 className="text-2xl font-bold text-orchid mb-4">Wallet Tracker</h1>
-      <div className="grid gap-4">
-        {dummyWallets.map((wallet, i) => (
-          <div
-            key={i}
-            className={`border rounded p-4 ${
-              wallet.eligible ? 'border-cyan' : 'border-red-600'
-            }`}
-          >
-            <p className="text-white font-mono text-sm">🔗 {wallet.address}</p>
-            <p className="text-gray-400">Balance: {wallet.balance}</p>
-            <p className="text-gray-400">
-              Reputasi: <span className="text-cyan">{wallet.reputation}</span>/100
-            </p>
-            <p className={`mt-1 font-semibold ${wallet.eligible ? 'text-green-400' : 'text-red-400'}`}>
-              {wallet.eligible ? '✅ Eligible' : '❌ Not Eligible'}
-            </p>
-          </div>
-        ))}
-      </div>
-    </Layout>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4 text-purple-500">Generate Wallet</h1>
+      <button
+        onClick={handleGenerate}
+        className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
+      >
+        Generate Wallet 🔐
+      </button>
+
+      {result && (
+        <pre className="mt-4 p-4 bg-gray-900 text-green-400 rounded">
+          {result}
+        </pre>
+      )}
+    </div>
   );
 }
