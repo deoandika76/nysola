@@ -11,9 +11,9 @@ const menuItems = [
 
 export default function Sidebar() {
   return (
-    <div className="w-64 h-screen fixed left-0 top-0 bg-carbon text-white shadow-lg p-6 space-y-6">
-      <h1 className="text-2xl font-bold text-orchid mb-4">Nysola</h1>
-      <ul className="space-y-3">
+    <div className="w-full md:w-64 md:h-screen bg-carbon text-white md:fixed top-0 left-0 shadow-lg p-4 md:p-6 space-y-4 md:space-y-6 z-10">
+      <h1 className="text-2xl font-bold text-orchid">Nysola</h1>
+      <ul className="space-y-2 md:space-y-3">
         {menuItems.map((item) => (
           <li key={item.name}>
             <Link href={item.href}>
