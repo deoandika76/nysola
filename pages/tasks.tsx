@@ -1,8 +1,6 @@
-// pages/tasks.tsx
-
 import Layout from '../components/Layout';
-import ErrorBox from '../components/ErrorBox';
 import { useState } from 'react';
+import ErrorBox from '../components/ErrorBox';
 
 export default function Tasks() {
   const [result, setResult] = useState('');
@@ -21,9 +19,9 @@ export default function Tasks() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          to: '0x122CAa6b1cD0F4E3b30bfB85F22ec6c777Ee4c04', // Ganti dengan wallet tujuan testnet
-          value: '0.001',
-          privateKey: '0xc07edecf92f3a28d931449a4ca8bf076cf45dd23feb71c11cbae022712c8ad99' // Ganti dengan privateKey testnet
+          to: '0x122CAa6b1cD0F4E3b30bfB85F22ec6c777Ee4c04', // Wallet tujuan testnet Sepolia
+          value: '0.001', // ETH dalam string
+          privateKey: '0xc07edecf92f3a28d931449a4ca8bf076cf45dd23feb71c11cbae022712c8ad99', // Private key testnet kamu
         }),
       });
 
@@ -32,10 +30,10 @@ export default function Tasks() {
       if (response.ok) {
         setResult(`✅ TX berhasil dikirim: ${data.txHash}`);
       } else {
-        setError(data.error || data.message || 'TX gagal tanpa alasan 🥲');
+        setError(data.message || 'Terjadi kesalahan');
       }
     } catch (err: any) {
-      setError(err.message || 'Unknown error');
+      setError(err.message || 'Kesalahan jaringan');
     } finally {
       setLoading(false);
     }
@@ -43,7 +41,7 @@ export default function Tasks() {
 
   return (
     <Layout>
-      <h1 className="text-3xl font-bold text-purple-500 mb-2">Tasks</h1>
+      <h1 className="text-3xl font-bold text-purple-500 mb-4">Tasks</h1>
       <p className="text-gray-400 mb-6">Test pengiriman transaksi testnet Sepolia</p>
 
       <button
@@ -55,14 +53,12 @@ export default function Tasks() {
       </button>
 
       {result && (
-        <div className="mt-4 bg-black text-green-400 p-4 rounded font-mono break-all">
+        <div className="mt-4 bg-black text-green-400 p-4 rounded font-mono">
           {result}
         </div>
       )}
 
-      {error && (
-        <ErrorBox message={error} />
-      )}
+      {error && <ErrorBox message={error} />}
     </Layout>
   );
 }
