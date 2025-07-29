@@ -1,25 +1,26 @@
-// pages/api/sendTx.ts
 import { ethers } from "ethers";
+import type { NextApiRequest, NextApiResponse } from "next";
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ message: 'Only POST allowed' });
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Only POST allowed' });
+  }
 
   const { to, privateKey, value } = req.body;
 
   try {
-    const provider = new ethers.providers.JsonRpcProvider("https://eth-sepolia.g.alchemy.com/v2/BM2Wx8plEidiluB5zuAHU"); // ganti dengan milikmu
-
+    const provider = new ethers.JsonRpcProvider(process.env.ALCHEMY_SEPOLIA_RPC);
     const wallet = new ethers.Wallet(privateKey, provider);
 
     const tx = await wallet.sendTransaction({
       to,
-      value: ethers.utils.parseEther(value), // kirim ETH (dalam string, contoh: "0.01")
+      value: ethers.parseEther(value),
     });
 
-    const receipt = await tx.wait();
+    await tx.wait();
 
-    res.status(200).json({ message: "Transaksi berhasil dikirim!", receipt });
-  } catch (error) {
-    res.status(500).json({ message: "Gagal mengirim transaksi", error: error.message });
+    res.status(200).json({ message: "Transaction sent!", txHash: tx.hash });
+  } catch (error: any) {
+    res.status(500).json({ message: "Transaction failed", error: error.message });
   }
 }
