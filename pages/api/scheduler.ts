@@ -1,4 +1,4 @@
-// pages/api/scheduler.ts ( nysola wkwk )
+// pages/api/scheduler.ts
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { db, fetchWallets } from '@/firebase';
