@@ -1,6 +1,6 @@
 // firebase.ts
 
-import { initializeApp } fromu 'firebase/app';
+import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, getDocs, Timestamp } from 'firebase/firestore';
 import { ethers } from 'ethers';
 
