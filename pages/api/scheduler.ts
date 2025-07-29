@@ -1,13 +1,13 @@
 // pages/api/scheduler.ts
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { db, fetchWallets } from '@/firebase';
+import { db, fetchWallets } from '../../firebase'; // ✅ fix path import
 import { ethers } from 'ethers';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Only POST method allowed' });
+    return res.status(405).json({ message: 'Only POST allowed' });
   }
 
   try {
@@ -22,27 +22,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const signer = new ethers.Wallet(wallet.privateKey, provider);
         const tx = await signer.sendTransaction({
           to: dummyReceiver,
-          value: ethers.parseEther('0.00005'),
+          value: ethers.parseEther('0.0001'),
         });
 
         await tx.wait();
 
+        // Simpan ke logs
+        await addDoc(collection(db, 'autoTaskLogs'), {
+          walletAddress: wallet.address,
+          txHash: tx.hash,
+          timestamp: Timestamp.now(),
+          status: 'success',
+        });
+
+        // Simpan ke txHistory
         await addDoc(collection(db, 'txHistory'), {
           from: wallet.address,
           to: dummyReceiver,
-          value: '0.00005',
+          value: '0.0001',
           txHash: tx.hash,
           createdAt: Timestamp.now(),
         });
 
         results.push({ address: wallet.address, txHash: tx.hash, status: 'success' });
-      } catch (error: any) {
-        results.push({ address: wallet.address, error: error.message, status: 'failed' });
+      } catch (err: any) {
+        results.push({ address: wallet.address, error: err.message, status: 'failed' });
       }
     }
 
-    res.status(200).json({ message: 'Scheduled task done', results });
-  } catch (error: any) {
-    res.status(500).json({ message: 'Scheduler failed', error: error.message });
+    res.status(200).json({ message: 'Scheduler task executed', results });
+  } catch (err: any) {
+    res.status(500).json({ message: 'Scheduler task failed', error: err.message });
   }
 }
