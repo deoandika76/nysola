@@ -1,15 +1,18 @@
+// components/Sidebar.tsx
+
 import Link from 'next/link';
 
 const menuItems = [
   { name: 'Dashboard', href: '/' },
   { name: 'Wallets', href: '/wallets' },
   { name: 'Tasks', href: '/tasks' },
-  { name: 'Auto Task', href: '/auto' }, // ✅ Tambahan Auto Task
+  { name: 'Auto Task', href: '/auto' },
   { name: 'Schedule TX', href: '/schedule' },
-  { name: 'Check Schedule', href: '/check' }
+  { name: 'Check Schedule', href: '/check' }, // ← ini harusnya ada koma di akhir, fix errornya!
   { name: 'Opportunities', href: '/opportunities' },
   { name: 'Notifications', href: '/notifications' },
   { name: 'Settings', href: '/settings' },
+  { name: 'Tx History', href: '/txHistory' }, // Tambahan menu baru
 ];
 
 export default function Sidebar() {
