@@ -1,5 +1,6 @@
 import Layout from '../components/Layout';
 
+
 const dummyWallets = [
   {
     address: '0x1234...abcd',
