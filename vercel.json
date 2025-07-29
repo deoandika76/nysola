@@ -1,0 +1,9 @@
+// vercel.json
+{
+  "cron": [
+    {
+      "path": "/api/scheduler",
+      "schedule": "0 * * * *" 
+    }
+  ]
+}
