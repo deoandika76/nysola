@@ -6,6 +6,7 @@ const menuItems = [
   { name: 'Tasks', href: '/tasks' },
   { name: 'Auto Task', href: '/auto' }, // ✅ Tambahan Auto Task
   { name: 'Schedule TX', href: '/schedule' },
+  { name: 'Check Schedule', href: '/check' }
   { name: 'Opportunities', href: '/opportunities' },
   { name: 'Notifications', href: '/notifications' },
   { name: 'Settings', href: '/settings' },
