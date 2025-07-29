@@ -4,6 +4,7 @@ const menuItems = [
   { name: 'Dashboard', href: '/' },
   { name: 'Wallets', href: '/wallets' },
   { name: 'Tasks', href: '/tasks' },
+  { name: 'Auto Task', href: '/auto' }, // ✅ Tambahan Auto Task
   { name: 'Opportunities', href: '/opportunities' },
   { name: 'Notifications', href: '/notifications' },
   { name: 'Settings', href: '/settings' },
