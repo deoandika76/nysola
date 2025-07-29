@@ -1,5 +1,3 @@
-// components/Sidebar.tsx :)
-
 import Link from 'next/link';
 
 const menuItems = [
@@ -8,11 +6,11 @@ const menuItems = [
   { name: 'Tasks', href: '/tasks' },
   { name: 'Auto Task', href: '/auto' },
   { name: 'Schedule TX', href: '/schedule' },
-  { name: 'Check Schedule', href: '/check' }, // ← ini harusnya ada koma di akhir, fix errornya!
+  { name: 'Check Schedule', href: '/check' },
   { name: 'Opportunities', href: '/opportunities' },
   { name: 'Notifications', href: '/notifications' },
   { name: 'Settings', href: '/settings' },
-  { name: 'Tx History', href: '/txHistory' }, // Tambahan menu baru
+  { name: 'Tx History', href: '/tx-history' }, // ✅ Fix path di sini
 ];
 
 export default function Sidebar() {
@@ -23,7 +21,9 @@ export default function Sidebar() {
         {menuItems.map((item) => (
           <li key={item.name}>
             <Link href={item.href}>
-              <span className="block hover:text-cyan transition">{item.name}</span>
+              <span className="block hover:text-cyan transition cursor-pointer">
+                {item.name}
+              </span>
             </Link>
           </li>
         ))}
