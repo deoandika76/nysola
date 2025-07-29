@@ -9,7 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { to, privateKey, value } = req.body;
 
   try {
-    const provider = new ethers.JsonRpcProvider(process.env.ALCHEMY_SEPOLIA_RPC);
+    const provider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_SEPOLIA_RPC!);
     const wallet = new ethers.Wallet(privateKey, provider);
 
     const tx = await wallet.sendTransaction({
