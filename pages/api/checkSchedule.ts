@@ -1,7 +1,5 @@
-// pages/api/checkSchedule.ts
-
 import { NextApiRequest, NextApiResponse } from 'next';
-import { db } from '@/firebase';
+import { db } from '../../firebase';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { ethers } from 'ethers';
 
