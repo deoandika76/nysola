@@ -3,7 +3,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { db, fetchWallets } from '../../firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { ethers } from 'ethers';
-import axios from 'axios'; // ✅ WAJIB import axios
+import axios from 'axios';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -40,7 +40,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           status: 'success',
         });
 
-        // ✅ Panggil logNotification di sini
         await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/logNotification`, {
           message: `✅ TX success - ${wallet.address} → ${tx.hash}`,
           type: 'success',
@@ -48,7 +47,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         results.push({ address: wallet.address, txHash: tx.hash, status: 'success' });
       } catch (err: any) {
-        // ✅ Log failure juga
         await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/logNotification`, {
           message: `❌ TX failed - ${wallet.address} → ${err.message}`,
           type: 'error',
