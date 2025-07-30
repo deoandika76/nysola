@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { db } from '@/firebase'
+import { db } from '../../lib/firebase' // ganti path ini sesuai struktur kamu
 import { addDoc, collection, Timestamp } from 'firebase/firestore'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
