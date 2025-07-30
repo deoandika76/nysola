@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { fetchWallets } from '../firebase'; // relative path OK
+import { fetchWallets } from '../lib/firebase'; // relative path OK
 import WalletList from '../components/WalletList';
 import ExportWalletsButton from '../components/ExportWalletsButton';
 
