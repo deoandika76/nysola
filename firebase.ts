@@ -1,46 +1,21 @@
-// pages/api/scheduler.ts
-import { NextApiRequest, NextApiResponse } from 'next';
-import { db, fetchWallets } from '../../firebase';
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
-import { ethers } from 'ethers';
+// firebase.ts
+import { initializeApp, getApps } from 'firebase/app';
+import { getFirestore, collection, getDocs } from 'firebase/firestore';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Only POST allowed' });
-  }
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
+};
 
-  try {
-    const wallets = await fetchWallets();
-    const provider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_SEPOLIA_RPC!);
-    const dummyReceiver = '0x122CAa6b1cD0F4E3b30bfB85F22ec6c777Ee4c04';
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+export const db = getFirestore(app);
 
-    const results = [];
-
-    for (const wallet of wallets) {
-      try {
-        const signer = new ethers.Wallet(wallet.privateKey, provider);
-        const tx = await signer.sendTransaction({
-          to: dummyReceiver,
-          value: ethers.parseEther('0.0001'),
-        });
-
-        await tx.wait();
-
-        await addDoc(collection(db, 'autoTaskLogs'), {
-          walletAddress: wallet.address,
-          txHash: tx.hash,
-          timestamp: Timestamp.now(),
-          status: 'success',
-        });
-
-        results.push({ address: wallet.address, txHash: tx.hash, status: 'success' });
-      } catch (err: any) {
-        results.push({ address: wallet.address, error: err.message, status: 'failed' });
-      }
-    }
-
-    return res.status(200).json({ results });
-  } catch (err: any) {
-    return res.status(500).json({ error: err.message });
-  }
+// Fungsi untuk mengambil semua wallet dari koleksi `wallets`
+export async function fetchWallets() {
+  const snapshot = await getDocs(collection(db, 'wallets'));
+  return snapshot.docs.map(doc => doc.data() as { address: string; privateKey: string });
 }
