@@ -8,10 +8,10 @@ const menuItems = [
   { name: 'Schedule TX', href: '/schedule' },
   { name: 'Check Schedule', href: '/check' },
   { name: 'Opportunities', href: '/opportunities' },
+  { name: 'Hunter', href: '/hunter' }, // ✅ Added here
   { name: 'Notifications', href: '/notifications' },
   { name: 'Settings', href: '/settings' },
-  { name: 'Tx History', href: '/tx-history' }, // ✅ Fix path di sini
-  { name: 'Notifications', href: '/notifications' },
+  { name: 'Tx History', href: '/tx-history' },
 ];
 
 export default function Sidebar() {
