@@ -1,3 +1,4 @@
+// pages/api/scheduler.ts
 import { NextApiRequest, NextApiResponse } from 'next';
 import { db, fetchWallets } from '../../firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
@@ -9,16 +10,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: 'Only POST allowed' });
   }
 
+  // Validasi Authorization header
   const authHeader = req.headers.authorization;
   const validSecret = `Bearer ${process.env.CRON_SECRET}`;
   if (authHeader !== validSecret) {
-    return res.status(401).end('Unauthorized');
+    return res.status(401).json({ message: 'Unauthorized' });
   }
 
   try {
     const wallets = await fetchWallets();
     const provider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_SEPOLIA_RPC!);
     const dummyReceiver = '0x122CAa6b1cD0F4E3b30bfB85F22ec6c777Ee4c04';
+
     const results = [];
 
     for (const wallet of wallets) {
@@ -38,13 +41,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           status: 'success',
         });
 
+        // Kirim log sukses
         await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/logNotification`, {
           message: `✅ TX success - ${wallet.address} → ${tx.hash}`,
           type: 'success',
         });
 
         results.push({ address: wallet.address, txHash: tx.hash, status: 'success' });
+
       } catch (err: any) {
+        // Kirim log error
         await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/logNotification`, {
           message: `❌ TX failed - ${wallet.address} → ${err.message}`,
           type: 'error',
@@ -55,7 +61,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     return res.status(200).json({ results });
+
   } catch (err: any) {
+    // Log global error
+    await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/logNotification`, {
+      message: `🔥 FATAL ERROR scheduler.ts → ${err.message}`,
+      type: 'error',
+    });
+
     return res.status(500).json({ error: err.message });
   }
 }
