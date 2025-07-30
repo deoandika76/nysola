@@ -18,4 +18,18 @@ export const db = getFirestore(app);
 export async function fetchWallets() {
   const snapshot = await getDocs(collection(db, 'wallets'));
   return snapshot.docs.map(doc => doc.data() as { address: string; privateKey: string });
+
+// Ambil semua histori TX dari koleksi `txHistory`
+export async function fetchTxHistory() {
+  const snapshot = await getDocs(collection(db, 'txHistory'));
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as {
+    id: string;
+    walletAddress: string;
+    txHash: string;
+    status: 'success' | 'failed';
+    timestamp: any;
+  }[];
 }
