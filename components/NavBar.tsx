@@ -1,4 +1,5 @@
 // components/Navbar.tsx
+// HEHE HAHA
 import Link from 'next/link';
 
 const menuItems = [
