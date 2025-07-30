@@ -19,6 +19,7 @@ module.exports = {
         'fade-in': 'fadeIn 1s ease-out',
         'fade-up': 'fadeUp 1.2s ease-out',
         'glow': 'pulse 3s infinite',
+        'shake': 'shake 0.4s ease-in-out',
       },
       keyframes: {
         fadeIn: {
@@ -32,6 +33,12 @@ module.exports = {
         pulse: {
           '0%, 100%': { boxShadow: '0 0 15px #b10dc9' },
           '50%': { boxShadow: '0 0 30px #00ffff' },
+        },
+        shake: {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '25%': { transform: 'translateX(-6px)' },
+          '50%': { transform: 'translateX(6px)' },
+          '75%': { transform: 'translateX(-4px)' },
         },
       },
     },
