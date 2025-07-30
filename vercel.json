@@ -1,9 +1,9 @@
 {
   "cron": [
     {
-      "path": "api/scheduler",
-      "schedule": "0 */4 * * *",
-      "enabled": true
+      "path": "/api/scheduler",
+      "schedule": "0 */4 * * *", // setiap 4 jam
+      "method": "POST"
     }
   ]
 }
