@@ -1,19 +1,37 @@
 // components/Header.tsx
 import { useState } from 'react';
 import NotificationDropdown from './NotificationDropdown';
-// Hapus saja Bar3Icon, ganti manual
+import { Bars3Icon } from '@heroicons/react/24/solid';
 
 export default function Header({ onToggleNavbar }: { onToggleNavbar: () => void }) {
-  return (
-    <header className="w-full flex items-center justify-between px-4 py-3 bg-carbon text-white shadow-md fixed top-0 left-0 z-50">
-      <div className="flex items-center gap-4">
-        <button onClick={onToggleNavbar} className="text-2xl hover:text-cyan transition">
-         ☰
-         </button>
-        <h1 className="text-xl font-bold text-orchid font-futuristic">Nysola</h1>
-      </div>
+  const [showNotif, setShowNotif] = useState(false);
 
-      <NotificationDropdown />
+  return (
+    <header className="fixed top-0 left-0 w-full bg-carbon text-white shadow-lg z-50 flex items-center justify-between px-6 py-4">
+      <h1 className="text-xl font-bold text-orchid font-futuristic">NYSOLA AI OPS</h1>
+
+      <div className="flex items-center space-x-4">
+        {/* 🔔 Bell Icon */}
+        <button
+          onClick={() => setShowNotif((prev) => !prev)}
+          className="relative focus:outline-none"
+        >
+          <span className="text-white text-2xl">🔔</span>
+          {showNotif && (
+            <div className="absolute right-0 mt-2 w-80">
+              <NotificationDropdown />
+            </div>
+          )}
+        </button>
+
+        {/* ☰ Navbar Toggle */}
+        <button
+          onClick={onToggleNavbar}
+          className="text-white hover:text-cyan transition"
+        >
+          <Bars3Icon className="h-7 w-7" />
+        </button>
+      </div>
     </header>
   );
 }
