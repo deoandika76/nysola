@@ -4,6 +4,7 @@ import {
   getFirestore,
   collection,
   getDocs,
+  onSnapshot,
   DocumentData,
 } from 'firebase/firestore';
 
@@ -16,6 +17,7 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };
 
+// ✅ Init Firebase app
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 export const db = getFirestore(app);
 
@@ -34,7 +36,6 @@ export async function fetchTxHistory(): Promise<
     status: 'success' | 'failed';
     timestamp: any;
   }[]
-//hehe haha
 > {
   const snapshot = await getDocs(collection(db, 'txHistory'));
   return snapshot.docs.map((doc) => {
@@ -46,5 +47,14 @@ export async function fetchTxHistory(): Promise<
       status: data.status,
       timestamp: data.timestamp,
     };
+  });
+}
+
+// 🔔 Listener realtime untuk notifikasi (dipakai di notifications.tsx)
+export function listenToNotifications(callback: (data: DocumentData[]) => void) {
+  const notifRef = collection(db, 'notifications');
+  return onSnapshot(notifRef, (snapshot) => {
+    const notifs = snapshot.docs.map((doc) => doc.data());
+    callback(notifs);
   });
 }
