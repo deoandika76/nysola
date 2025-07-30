@@ -1,4 +1,5 @@
 // components/Navbar.tsx
+// BENER NI BRO
 import Link from 'next/link';
 
 const menuItems = [
