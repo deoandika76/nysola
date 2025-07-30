@@ -1,17 +1,17 @@
 // components/DashboardCard.tsx
-interface DashboardCardProps {
+type Props = {
   title: string;
   value: string;
   icon: string;
   color?: string;
-}
+};
 
-export default function DashboardCard({ title, value, icon, color = 'purple-600' }: DashboardCardProps) {
+export default function DashboardCard({ title, value, icon, color }: Props) {
   return (
-    <div className={`bg-${color} bg-opacity-20 border border-${color} p-4 rounded-xl shadow-md`}>
-      <div className="text-3xl">{icon}</div>
-      <div className="text-xl font-bold text-white mt-2">{value}</div>
-      <div className="text-sm text-gray-400">{title}</div>
+    <div className="bg-[#1a1a1a] border border-gray-700 p-6 rounded-xl text-center shadow-md w-60">
+      <div className="text-3xl mb-2">{icon}</div>
+      <h3 className={`text-xl font-bold mb-1 ${color || 'text-cyan'}`}>{value}</h3>
+      <p className="text-gray-400 text-sm">{title}</p>
     </div>
   );
 }
