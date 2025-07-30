@@ -1,19 +1,15 @@
 // pages/api/logNotification.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { db } from '../../firebase';
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { db } from '../../firebase'; // ✅ HARUS sesuai posisi
+import { addDoc, collection, Timestamp } from 'firebase/firestore';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Only POST method allowed' });
+    return res.status(405).json({ error: 'Only POST method allowed' });
   }
 
   try {
     const { message, type } = req.body;
-
-    if (!message || !type) {
-      return res.status(400).json({ message: 'Missing message or type' });
-    }
 
     await addDoc(collection(db, 'notifications'), {
       message,
@@ -22,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     return res.status(200).json({ success: true });
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
   }
 }
