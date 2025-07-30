@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import dynamic from 'next/dynamic';
+
+// Dynamic import biar WalletConnectButton cuma jalan di client
+const WalletConnectButton = dynamic(() => import('../components/WalletConnectButton'), {
+  ssr: false,
+});
 
 export default function Login() {
   const [password, setPassword] = useState('');
@@ -17,12 +23,8 @@ export default function Login() {
 
     setTimeout(() => {
       if (password === correctPassword) {
-        // ✅ Simpan ke localStorage (untuk client use if needed)
         localStorage.setItem('nysola-auth', 'true');
-
-        // ✅ Simpan ke cookie (buat dibaca middleware.ts)
         document.cookie = 'nysola-auth=true; path=/';
-
         setUnlocked(true);
 
         setTimeout(() => {
@@ -32,11 +34,10 @@ export default function Login() {
         setError('❌ Wrong password!');
         setLoading(false);
 
-        // Shake animation
         const input = document.getElementById('login-input');
         if (input) {
           input.classList.remove('animate-shake');
-          void input.offsetWidth; // force reflow
+          void input.offsetWidth;
           input.classList.add('animate-shake');
         }
       }
@@ -53,6 +54,7 @@ export default function Login() {
           Login to Nysola
         </h1>
 
+        {/* Input Password */}
         <input
           id="login-input"
           type="password"
@@ -63,8 +65,10 @@ export default function Login() {
           disabled={loading}
         />
 
+        {/* Error Message */}
         {error && <p className="text-red-500 mb-3 animate-pulse">{error}</p>}
 
+        {/* Login Button */}
         <button
           onClick={handleLogin}
           disabled={loading}
@@ -78,6 +82,22 @@ export default function Login() {
         >
           {unlocked ? '✅ Unlocked!' : loading ? '🔐 Verifying...' : '🔓 Unlock Access'}
         </button>
+
+        {/* Divider */}
+        <div className="relative w-full max-w-sm my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-700" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="bg-black px-2 text-gray-400">or</span>
+          </div>
+        </div>
+
+        {/* WalletConnect Section */}
+        <div className="bg-carbon p-6 rounded-xl shadow-md w-full max-w-sm">
+          <h2 className="text-lg font-semibold text-cyan text-center mb-4">Connect Wallet</h2>
+          <WalletConnectButton />
+        </div>
       </div>
     </>
   );
