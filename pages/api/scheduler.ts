@@ -1,42 +1,46 @@
 // pages/api/scheduler.ts
 import { NextApiRequest, NextApiResponse } from 'next';
-import { ethers } from 'ethers';
-import { db, fetchWallets } from '@/firebase';
+import { db, fetchWallets } from '../../firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { ethers } from 'ethers';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.headers.authorization !== process.env.CRON_SECRET) {
-    return res.status(401).json({ message: 'Unauthorized' });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Only POST allowed' });
   }
 
-  const provider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_SEPOLIA_RPC!);
-  const dummyReceiver = '0x122CAa6b1cD0F4E3b30bfB85F22ec6c777Ee4c04';
+  try {
+    const wallets = await fetchWallets();
+    const provider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_SEPOLIA_RPC!);
+    const dummyReceiver = '0x122CAa6b1cD0F4E3b30bfB85F22ec6c777Ee4c04';
 
-  const wallets = await fetchWallets();
-  const results = [];
+    const results = [];
 
-  for (const wallet of wallets) {
-    try {
-      const signer = new ethers.Wallet(wallet.privateKey, provider);
-      const tx = await signer.sendTransaction({
-        to: dummyReceiver,
-        value: ethers.parseEther('0.0001'),
-      });
-      await tx.wait();
+    for (const wallet of wallets) {
+      try {
+        const signer = new ethers.Wallet(wallet.privateKey, provider);
+        const tx = await signer.sendTransaction({
+          to: dummyReceiver,
+          value: ethers.parseEther('0.0001'),
+        });
 
-      await addDoc(collection(db, 'txHistory'), {
-        from: wallet.address,
-        to: dummyReceiver,
-        txHash: tx.hash,
-        value: '0.0001',
-        createdAt: Timestamp.now(),
-      });
+        await tx.wait();
 
-      results.push({ wallet: wallet.address, txHash: tx.hash });
-    } catch (err: any) {
-      results.push({ wallet: wallet.address, error: err.message });
+        await addDoc(collection(db, 'autoTaskLogs'), {
+          walletAddress: wallet.address,
+          txHash: tx.hash,
+          timestamp: Timestamp.now(),
+          status: 'success',
+        });
+
+        results.push({ address: wallet.address, txHash: tx.hash, status: 'success' });
+      } catch (err: any) {
+        results.push({ address: wallet.address, error: err.message, status: 'failed' });
+      }
     }
-  }
 
-  res.status(200).json({ message: 'Done', results });
+    return res.status(200).json({ results });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
 }
