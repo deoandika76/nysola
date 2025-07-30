@@ -1,4 +1,5 @@
 // components/DashboardCard.tsx
+// cuma iseng wkwk
 type Props = {
   title: string;
   value: string;
