@@ -1,46 +1,46 @@
-// firebase.ts
-
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, getDocs, Timestamp } from 'firebase/firestore';
+// pages/api/scheduler.ts
+import { NextApiRequest, NextApiResponse } from 'next';
+import { db, fetchWallets } from '../../firebase';
+import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { ethers } from 'ethers';
 
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!
-};
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Only POST allowed' });
+  }
 
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+  try {
+    const wallets = await fetchWallets();
+    const provider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_SEPOLIA_RPC!);
+    const dummyReceiver = '0x122CAa6b1cD0F4E3b30bfB85F22ec6c777Ee4c04';
 
-// Generate wallet dan simpan ke Firestore
-export const generateWallet = async () => {
-  const wallet = ethers.Wallet.createRandom();
+    const results = [];
 
-  const walletData = {
-    address: wallet.address,
-    privateKey: wallet.privateKey,
-    createdAt: Timestamp.now(),
-  };
+    for (const wallet of wallets) {
+      try {
+        const signer = new ethers.Wallet(wallet.privateKey, provider);
+        const tx = await signer.sendTransaction({
+          to: dummyReceiver,
+          value: ethers.parseEther('0.0001'),
+        });
 
-  await addDoc(collection(db, 'wallets'), walletData);
-  return walletData;
-};
+        await tx.wait();
 
-// Ambil semua wallet dari Firestore (fix TypeScript)
-export const fetchWallets = async () => {
-  const snapshot = await getDocs(collection(db, 'wallets'));
-  const wallets = snapshot.docs.map((doc) => {
-    const data = doc.data();
-    return {
-      id: doc.id,
-      address: data.address,
-      privateKey: data.privateKey,
-      createdAt: data.createdAt,
-    };
-  });
-  return wallets;
-};
+        await addDoc(collection(db, 'autoTaskLogs'), {
+          walletAddress: wallet.address,
+          txHash: tx.hash,
+          timestamp: Timestamp.now(),
+          status: 'success',
+        });
+
+        results.push({ address: wallet.address, txHash: tx.hash, status: 'success' });
+      } catch (err: any) {
+        results.push({ address: wallet.address, error: err.message, status: 'failed' });
+      }
+    }
+
+    return res.status(200).json({ results });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+}
