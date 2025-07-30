@@ -1,7 +1,7 @@
 // components/Header.tsx
 import { useState } from 'react';
 import NotificationDropdown from './NotificationDropdown';
-import { Bars3Icon } from '@heroicons/react/24/solid';
+// Hapus saja Bar3Icon, ganti manual
 
 export default function Header({ onToggleNavbar }: { onToggleNavbar: () => void }) {
   return (
