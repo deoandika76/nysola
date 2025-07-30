@@ -34,6 +34,7 @@ export async function fetchTxHistory(): Promise<
     status: 'success' | 'failed';
     timestamp: any;
   }[]
+//hehe haha
 > {
   const snapshot = await getDocs(collection(db, 'txHistory'));
   return snapshot.docs.map((doc) => {
