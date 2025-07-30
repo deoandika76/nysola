@@ -2,7 +2,7 @@
   "cron": [
     {
       "path": "/api/scheduler",
-      "schedule": "0 7 * * *",  // jam 07:00 UTC (14:00 WIB)
+      "schedule": "0 7 * * *",
       "method": "POST"
     }
   ]
