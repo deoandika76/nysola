@@ -21,10 +21,13 @@ export default function NotificationDropdown() {
   useEffect(() => {
     const q = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const newData = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...(doc.data() as Notification),
-      }));
+      const newData = snapshot.docs.map((doc) => {
+        const data = doc.data() as Omit<Notification, 'id'>;
+        return {
+          ...data,
+          id: doc.id, // <- pastikan ini di akhir, bukan di-spread dua kali
+        };
+      });
       setNotifications(newData);
     });
 
