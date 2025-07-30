@@ -1,10 +1,12 @@
 // components/WalletConnectButton.tsx
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import { connectWithMetamask } from '../utils/walletConnect';
 
 export default function WalletConnectButton() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const saved = localStorage.getItem('nysola-wallet');
@@ -17,6 +19,14 @@ export default function WalletConnectButton() {
     if (address) {
       localStorage.setItem('nysola-wallet', address);
       setWalletAddress(address);
+
+      // ✅ Simpan auth ke cookie (biar middleware detect)
+      document.cookie = 'nysola-auth=true; path=/';
+
+      // ✅ Redirect ke dashboard
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 1000);
     }
     setConnecting(false);
   };
