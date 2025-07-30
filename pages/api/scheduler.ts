@@ -9,10 +9,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: 'Only POST allowed' });
   }
 
-  // ✅ Proteksi pakai CRON_SECRET (diset di dashboard Vercel > Environment Variables)
-  const secret = req.headers.authorization;
-  if (secret !== process.env.CRON_SECRET) {
-    return res.status(401).json({ message: 'Unauthorized access' });
+  // ✅ Validasi Authorization (sesuai gaya Vercel)
+  const authHeader = req.headers.authorization;
+  const validSecret = `Bearer ${process.env.CRON_SECRET}`;
+  if (authHeader !== validSecret) {
+    return res.status(401).end('Unauthorized');
   }
 
   try {
