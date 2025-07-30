@@ -9,6 +9,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: 'Only POST allowed' });
   }
 
+  // ✅ Proteksi pakai CRON_SECRET (diset di dashboard Vercel > Environment Variables)
+  const secret = req.headers.authorization;
+  if (secret !== process.env.CRON_SECRET) {
+    return res.status(401).json({ message: 'Unauthorized access' });
+  }
+
   try {
     const wallets = await fetchWallets();
     const provider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_SEPOLIA_RPC!);
