@@ -1,38 +1,45 @@
 // pages/dashboard.tsx
-import Head from 'next/head';
 import { useEffect, useState } from 'react';
-import { fetchTxHistory } from '../firebase';
+import Head from 'next/head';
 import DashboardCard from '../components/DashboardCard';
+import { fetchTxHistory } from '../firebase';
+import Header from '../components/Header';
+import Navbar from '../components/Navbar';
 
 export default function Dashboard() {
   const [txCount, setTxCount] = useState(0);
   const [successCount, setSuccessCount] = useState(0);
   const [failedCount, setFailedCount] = useState(0);
+  const [navbarOpen, setNavbarOpen] = useState(false);
 
   useEffect(() => {
-    const load = async () => {
-      const txs = await fetchTxHistory();
-      setTxCount(txs.length);
-      setSuccessCount(txs.filter((t) => t.status === 'success').length);
-      setFailedCount(txs.filter((t) => t.status === 'failed').length);
+    const loadData = async () => {
+      const data = await fetchTxHistory();
+      setTxCount(data.length);
+      setSuccessCount(data.filter((d) => d.status === 'success').length);
+      setFailedCount(data.filter((d) => d.status === 'failed').length);
     };
-    load();
+    loadData();
   }, []);
 
   return (
     <>
       <Head>
-        <title>Nysola Dashboard</title>
+        <title>Dashboard - Nysola</title>
       </Head>
-      <div className="min-h-screen bg-gradient-to-b from-black via-[#111] to-[#1a1a1a] text-white px-6 pt-24 md:px-20">
-        <h1 className="text-4xl font-bold text-cyan mb-8 text-center">📊 Dashboard Analytics</h1>
+
+      <Header onToggleNavbar={() => setNavbarOpen(!navbarOpen)} />
+      <Navbar isOpen={navbarOpen} />
+
+      <main className="pt-20 px-6 md:px-16 pb-12 bg-black min-h-screen text-white">
+        <h1 className="text-3xl font-bold mb-6 text-cyan">📊 Dashboard Analytics</h1>
 
         <div className="flex flex-wrap gap-6 justify-center">
           <DashboardCard title="Total Transactions" value={txCount.toString()} icon="📦" />
           <DashboardCard title="Success" value={successCount.toString()} icon="✅" color="text-green-400" />
           <DashboardCard title="Failed" value={failedCount.toString()} icon="❌" color="text-red-500" />
         </div>
-      </div>
+      </main>
     </>
   );
 }
