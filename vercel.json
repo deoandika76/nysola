@@ -1,9 +1,8 @@
 {
-  "cron": [
+  "crons": [
     {
       "path": "/api/scheduler",
-      "schedule": "* * * * *",
-      "enabled": true
+      "schedule": "0 * * * *"
     }
   ]
 }
