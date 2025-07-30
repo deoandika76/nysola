@@ -1,6 +1,6 @@
 // pages/api/scheduler.ts
 import { NextApiRequest, NextApiResponse } from 'next';
-import { db, fetchWallets } from '../../firebase';
+import { db, fetchWallets } from '@/firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { ethers } from 'ethers';
 
