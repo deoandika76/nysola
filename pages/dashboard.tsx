@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+// pages/dashboard.tsx
 import Head from 'next/head';
+import { useEffect, useState } from 'react';
+import { fetchTxHistory } from '../firebase';
 import DashboardCard from '../components/DashboardCard';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../firebase';
 
 export default function Dashboard() {
   const [txCount, setTxCount] = useState(0);
@@ -10,19 +10,13 @@ export default function Dashboard() {
   const [failedCount, setFailedCount] = useState(0);
 
   useEffect(() => {
-    const fetchTxStats = async () => {
-      const snapshot = await getDocs(collection(db, 'txHistory'));
-      const txList = snapshot.docs.map(doc => doc.data());
-      setTxCount(txList.length);
-
-      const success = txList.filter((tx: any) => tx.status === 'success').length;
-      const failed = txList.filter((tx: any) => tx.status === 'failed').length;
-
-      setSuccessCount(success);
-      setFailedCount(failed);
+    const load = async () => {
+      const txs = await fetchTxHistory();
+      setTxCount(txs.length);
+      setSuccessCount(txs.filter((t) => t.status === 'success').length);
+      setFailedCount(txs.filter((t) => t.status === 'failed').length);
     };
-
-    fetchTxStats();
+    load();
   }, []);
 
   return (
@@ -30,15 +24,13 @@ export default function Dashboard() {
       <Head>
         <title>Nysola Dashboard</title>
       </Head>
-      <div className="min-h-screen bg-black text-white px-6 pt-20">
-        <h1 className="text-4xl font-bold text-cyan mb-8 text-center">
-          🚀 Welcome Back, Commander
-        </h1>
+      <div className="min-h-screen bg-gradient-to-b from-black via-[#111] to-[#1a1a1a] text-white px-6 pt-24 md:px-20">
+        <h1 className="text-4xl font-bold text-cyan mb-8 text-center">📊 Dashboard Analytics</h1>
 
         <div className="flex flex-wrap gap-6 justify-center">
-          <DashboardCard title="Total Transactions" value={txCount} icon="📦" />
-          <DashboardCard title="Success" value={successCount} icon="✅" color="text-green-400" />
-          <DashboardCard title="Failed" value={failedCount} icon="❌" color="text-red-500" />
+          <DashboardCard title="Total Transactions" value={txCount.toString()} icon="📦" />
+          <DashboardCard title="Success" value={successCount.toString()} icon="✅" color="text-green-400" />
+          <DashboardCard title="Failed" value={failedCount.toString()} icon="❌" color="text-red-500" />
         </div>
       </div>
     </>
