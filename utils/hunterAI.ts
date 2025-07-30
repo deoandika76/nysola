@@ -2,33 +2,28 @@
 import { Wallet } from '../types';
 import { ethers } from 'ethers';
 
-/**
- * Filter wallet yang punya saldo cukup di testnet
- */
-export async function filterActiveWallets(wallets: Wallet[], rpcUrl: string): Promise<Wallet[]> {
-  const provider = new ethers.JsonRpcProvider(rpcUrl);
-  const minBalance = ethers.parseEther('0.0001');
+const dummyReceiver = '0x122CAa6b1cD0F4E3b30bfB85F22ec6c777Ee4c04';
 
-  const activeWallets: Wallet[] = [];
+// Fungsi untuk memfilter wallet aktif (yang punya saldo)
+export async function filterActiveWallets(wallets: Wallet[], provider: ethers.JsonRpcProvider) {
+  const active: Wallet[] = [];
 
   for (const wallet of wallets) {
     try {
       const balance = await provider.getBalance(wallet.address);
-      if (balance >= minBalance) {
-        activeWallets.push(wallet);
+      if (balance > ethers.parseEther('0.00005')) {
+        active.push(wallet);
       }
     } catch (err) {
-      console.error(`Gagal cek saldo wallet ${wallet.address}`, err);
+      console.error(`❌ Failed check balance ${wallet.address}`, err);
     }
   }
 
-  return activeWallets;
+  return active;
 }
 
-/**
- * Pilih beberapa wallet secara acak dari yang aktif
- */
-export function selectRandomTargets(wallets: Wallet[], count = 3): Wallet[] {
-  const shuffled = [...wallets].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, count);
+// Fungsi untuk pilih target wallet yang ingin dipakai task selanjutnya
+export function pickTarget(wallets: Wallet[]) {
+  // Kamu bisa ubah logika pemilihan (acak, prioritas, dll)
+  return wallets.length > 0 ? wallets[0] : null;
 }
