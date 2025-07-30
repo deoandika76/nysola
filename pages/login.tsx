@@ -17,7 +17,12 @@ export default function Login() {
 
     setTimeout(() => {
       if (password === correctPassword) {
+        // ✅ Simpan ke localStorage (untuk client use if needed)
         localStorage.setItem('nysola-auth', 'true');
+
+        // ✅ Simpan ke cookie (buat dibaca middleware.ts)
+        document.cookie = 'nysola-auth=true; path=/';
+
         setUnlocked(true);
 
         setTimeout(() => {
@@ -27,7 +32,7 @@ export default function Login() {
         setError('❌ Wrong password!');
         setLoading(false);
 
-        // Trigger shake animation
+        // Shake animation
         const input = document.getElementById('login-input');
         if (input) {
           input.classList.remove('animate-shake');
