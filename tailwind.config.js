@@ -1,9 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./pages/**/*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}",
-    "./app/**/*.{js,ts,jsx,tsx}",
+    './pages/**/*.{js,ts,jsx,tsx}',
+    './components/**/*.{js,ts,jsx,tsx}',
+    './app/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {
@@ -18,8 +18,8 @@ module.exports = {
       animation: {
         'fade-in': 'fadeIn 1s ease-out',
         'fade-up': 'fadeUp 1.2s ease-out',
-        'glow': 'pulse 3s infinite',
-        'shake': 'shake 0.4s ease-in-out',
+        glow: 'pulse 3s infinite',
+        shake: 'shake 0.4s ease-in-out',
       },
       keyframes: {
         fadeIn: {
