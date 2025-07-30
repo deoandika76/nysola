@@ -1,48 +1,87 @@
-// components/NotificationDropdown.tsx
-import { useEffect, useState } from 'react';
-import { onSnapshot, collection, query, orderBy } from 'firebase/firestore';
+import { useEffect, useRef, useState } from 'react';
 import { db } from '../firebase';
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 
 type Notification = {
   id: string;
   status: 'success' | 'failed' | 'alert';
-  timestamp: any;
-  txHash: string;
-  walletAddress: string;
+  txHash?: string;
+  walletAddress?: string;
+  timestamp: {
+    seconds: number;
+    nanoseconds: number;
+  };
 };
 
 export default function NotificationDropdown() {
   const [open, setOpen] = useState(false);
-  const [notifs, setNotifs] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const q = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'));
-    const unsub = onSnapshot(q, (snapshot) => {
-      const docs = snapshot.docs.map((doc) => ({
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const newData = snapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data(),
-      })) as Notification[];
-      setNotifs(docs);
+        ...(doc.data() as Notification),
+      }));
+      setNotifications(newData);
     });
 
-    return () => unsub();
+    return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const getStatusColor = (status: string) => {
+    if (status === 'success') return 'text-green-400';
+    if (status === 'failed') return 'text-red-500';
+    return 'text-yellow-300';
+  };
+
   return (
-    <div className="relative">
-      <button onClick={() => setOpen(!open)} className="hover:text-cyan transition text-xl">🔔</button>
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="text-white text-xl focus:outline-none"
+        aria-label="Notifications"
+      >
+        🔔
+      </button>
+
       {open && (
-        <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-carbon border border-gray-700 rounded shadow-xl z-50 p-4">
-          <h3 className="font-bold mb-2 text-orchid">Notifications</h3>
-          {notifs.length === 0 && <p className="text-gray-400 text-sm">No notifications yet.</p>}
-          <ul className="space-y-2">
-            {notifs.map((n) => (
-              <li key={n.id} className={`text-sm border p-2 rounded ${n.status === 'success' ? 'border-green-400' : n.status === 'failed' ? 'border-red-400' : 'border-yellow-400'}`}>
-                <p><span className="font-bold">{n.status.toUpperCase()}</span> - {n.walletAddress.slice(0, 6)}... • {new Date(n.timestamp?.seconds * 1000).toLocaleTimeString()}</p>
-                <p className="text-xs text-gray-400 truncate">{n.txHash}</p>
-              </li>
-            ))}
-          </ul>
+        <div className="absolute right-0 mt-3 w-80 max-h-96 overflow-y-auto bg-carbon border border-gray-700 rounded-lg shadow-lg z-50">
+          <div className="p-3 border-b border-gray-600 font-semibold text-orchid">
+            Real-Time Notifications
+          </div>
+          {notifications.length === 0 ? (
+            <p className="p-4 text-gray-400">Belum ada notifikasi.</p>
+          ) : (
+            <ul className="divide-y divide-gray-700">
+              {notifications.map((n) => (
+                <li key={n.id} className={`p-3 text-sm ${getStatusColor(n.status)}`}>
+                  <div className="font-bold capitalize">{n.status}</div>
+                  {n.txHash && (
+                    <p className="text-xs truncate">TX: {n.txHash}</p>
+                  )}
+                  {n.walletAddress && (
+                    <p className="text-xs truncate">From: {n.walletAddress}</p>
+                  )}
+                  <p className="text-gray-500 text-xs">
+                    {new Date(n.timestamp.seconds * 1000).toLocaleString('id-ID')}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
     </div>
