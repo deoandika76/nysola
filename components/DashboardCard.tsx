@@ -1,21 +1,17 @@
+// components/DashboardCard.tsx
 interface DashboardCardProps {
   title: string;
-  value: string | number;
+  value: string;
   icon: string;
   color?: string;
 }
 
-export default function DashboardCard({
-  title,
-  value,
-  icon,
-  color = 'text-cyan'
-}: DashboardCardProps) {
+export default function DashboardCard({ title, value, icon, color = 'purple-600' }: DashboardCardProps) {
   return (
-    <div className="bg-carbon p-5 rounded-xl shadow-lg flex flex-col gap-2 w-full max-w-sm">
-      <div className={`text-3xl ${color}`}>{icon}</div>
-      <h3 className="text-lg text-white font-bold">{title}</h3>
-      <p className="text-2xl font-mono text-white">{value}</p>
+    <div className={`bg-${color} bg-opacity-20 border border-${color} p-4 rounded-xl shadow-md`}>
+      <div className="text-3xl">{icon}</div>
+      <div className="text-xl font-bold text-white mt-2">{value}</div>
+      <div className="text-sm text-gray-400">{title}</div>
     </div>
   );
 }
