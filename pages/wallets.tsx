@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { fetchWallets } from '../firebase'; // FIXED: dari '@/firebase' jadi '../firebase'
+import { fetchWallets } from '../firebase'; // relative path OK
 import WalletList from '../components/WalletList';
 import ExportWalletsButton from '../components/ExportWalletsButton';
 
@@ -19,8 +19,16 @@ export default function WalletsPage() {
 
   useEffect(() => {
     const getWallets = async () => {
-      const data = await fetchWallets();
-      setWallets(data);
+      const rawData = await fetchWallets();
+
+      const formatted = rawData.map((doc: any) => ({
+        id: doc.id,
+        address: doc.address,
+        privateKey: doc.privateKey,
+        createdAt: doc.createdAt || { seconds: 0, nanoseconds: 0 },
+      }));
+
+      setWallets(formatted);
     };
     getWallets();
   }, []);
