@@ -1,4 +1,3 @@
-// pages/api/scheduler.ts
 import { NextApiRequest, NextApiResponse } from 'next';
 import { db, fetchWallets } from '../../firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
@@ -20,7 +19,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const wallets = await fetchWallets();
     const provider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_SEPOLIA_RPC!);
     const dummyReceiver = '0x122CAa6b1cD0F4E3b30bfB85F22ec6c777Ee4c04';
-
     const results = [];
 
     for (const wallet of wallets) {
