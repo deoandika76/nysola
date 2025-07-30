@@ -1,4 +1,5 @@
 // pages/dashboard.tsx
+// HEHE HAHA
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import DashboardCard from '../components/DashboardCard';
