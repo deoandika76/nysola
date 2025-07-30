@@ -25,7 +25,7 @@ export default function Home() {
           </div>
           <div className="flex-1 animate-slide-in">
             <img
-              src="/nysola-character-1.png" // ← Kamu upload dulu ke folder `public`
+              src="/nysola-character-1.png"
               alt="Nysola AI"
               className="w-full max-w-md mx-auto rounded-2xl shadow-xl"
             />
