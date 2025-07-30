@@ -3,13 +3,13 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { db, fetchWallets } from '../../firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { ethers } from 'ethers';
+import axios from 'axios'; // ✅ WAJIB import axios
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Only POST allowed' });
   }
 
-  // ✅ Validasi Authorization (sesuai gaya Vercel)
   const authHeader = req.headers.authorization;
   const validSecret = `Bearer ${process.env.CRON_SECRET}`;
   if (authHeader !== validSecret) {
@@ -40,8 +40,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           status: 'success',
         });
 
+        // ✅ Panggil logNotification di sini
+        await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/logNotification`, {
+          message: `✅ TX success - ${wallet.address} → ${tx.hash}`,
+          type: 'success',
+        });
+
         results.push({ address: wallet.address, txHash: tx.hash, status: 'success' });
       } catch (err: any) {
+        // ✅ Log failure juga
+        await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/logNotification`, {
+          message: `❌ TX failed - ${wallet.address} → ${err.message}`,
+          type: 'error',
+        });
+
         results.push({ address: wallet.address, error: err.message, status: 'failed' });
       }
     }
