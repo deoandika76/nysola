@@ -11,6 +11,7 @@ const menuItems = [
   { name: 'Notifications', href: '/notifications' },
   { name: 'Settings', href: '/settings' },
   { name: 'Tx History', href: '/tx-history' }, // ✅ Fix path di sini
+  { name: 'Notifications', href: '/notifications' },
 ];
 
 export default function Sidebar() {
