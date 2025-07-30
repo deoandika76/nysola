@@ -1,3 +1,5 @@
+// redeploy trigger fix
+
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { db, fetchWallets } from '../../firebase'; // ✅ Fix path
 import { ethers } from 'ethers';
