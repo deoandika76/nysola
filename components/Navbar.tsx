@@ -1,39 +1,40 @@
-// HAHAHA
+// components/Navbar.tsx
 import Link from 'next/link';
+import { useState } from 'react';
+import GodEyeModal from './GodEyeModal';
 
 export default function Navbar({ isOpen }: { isOpen: boolean }) {
-  return (
-    <div
-      className={`fixed top-0 left-0 h-full w-64 bg-carbon text-white shadow-lg z-40 transform transition-transform ${
-        isOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}
-    >
-      <div className="p-6 border-b border-gray-700 text-xl font-bold text-orchid font-futuristic">
-        🛰️ Navigation
-      </div>
-      <nav className="p-4 space-y-2">
-        <Link href="/wallets" className="block hover:text-orchid">Wallets</Link>
-        <Link href="/tasks" className="block hover:text-orchid">Tasks</Link>
-        <Link href="/auto" className="block hover:text-orchid">Auto Task</Link>
-        <Link href="/schedule" className="block hover:text-orchid">Schedule TX</Link>
-        <Link href="/check" className="block hover:text-orchid">Check Schedule</Link>
-        <Link href="/opportunities" className="block hover:text-orchid">Opportunities</Link>
-        <Link href="/hunter" className="block hover:text-orchid">Hunter</Link>
-        <Link href="/tx-history" className="block hover:text-orchid">Tx History</Link>
-        <Link href="/notifications" className="block hover:text-orchid">Notifications</Link>
-        <Link href="/hunters/mission" className="block hover:text-orchid">Hunter Missions</Link>
+  const [modalOpen, setModalOpen] = useState(false);
 
-        {/* 👁️‍🔥 GOD EYE */}
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed top-20 left-0 w-full max-w-xs bg-carbon border-r border-gray-800 shadow-lg z-40 h-full p-6 text-white">
+      <h2 className="text-xl font-bold mb-4 text-orchid">🔭 Navigation</h2>
+      <ul className="space-y-3">
+        <li><Link href="/wallets">Wallets</Link></li>
+        <li><Link href="/tasks">Tasks</Link></li>
+        <li><Link href="/auto">Auto Task</Link></li>
+        <li><Link href="/schedule">Schedule TX</Link></li>
+        <li><Link href="/check">Check Schedule</Link></li>
+        <li><Link href="/opportunities">Opportunities</Link></li>
+        <li><Link href="/hunter">Hunter</Link></li>
+        <li><Link href="/tx-history">Tx History</Link></li>
+        <li><Link href="/notifications">Notifications</Link></li>
+        <li><Link href="/hunters/mission">Hunter Missions</Link></li>
+      </ul>
+
+      {/* 🔥 GOD EYE Button */}
+      <div className="mt-6">
         <button
-          onClick={() => {
-            const modal = document.getElementById('godeye-modal');
-            if (modal) modal.classList.remove('hidden');
-          }}
-          className="w-full mt-4 py-2 bg-gradient-to-r from-purple-600 to-pink-500 rounded text-sm font-bold hover:from-purple-700 hover:to-pink-600 transition"
+          onClick={() => setModalOpen(true)}
+          className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-pink-600 hover:to-purple-600 text-white font-bold py-2 px-4 rounded"
         >
           👁️‍🔥 Activate GOD EYE
         </button>
-      </nav>
+      </div>
+
+      <GodEyeModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
 }
