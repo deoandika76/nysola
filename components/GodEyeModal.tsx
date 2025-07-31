@@ -5,9 +5,12 @@ export default function GodEyeModal({ isOpen, onClose }: { isOpen: boolean; onCl
   const [input, setInput] = useState('');
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async () => {
     setLoading(true);
+    setResponse('');
+    setError('');
     try {
       const res = await fetch('/api/godeye', {
         method: 'POST',
@@ -15,9 +18,13 @@ export default function GodEyeModal({ isOpen, onClose }: { isOpen: boolean; onCl
         body: JSON.stringify({ prompt: input }),
       });
       const data = await res.json();
-      setResponse(data.result || 'No response.');
+      if (res.ok) {
+        setResponse(data.result || '✅ Respons kosong.');
+      } else {
+        setError(data.error || '❌ Terjadi kesalahan.');
+      }
     } catch (err) {
-      setResponse('❌ Error saat memanggil GOD EYE');
+      setError('❌ Error saat memanggil GOD EYE.');
     } finally {
       setLoading(false);
     }
@@ -42,7 +49,7 @@ export default function GodEyeModal({ isOpen, onClose }: { isOpen: boolean; onCl
             className="bg-orchid hover:bg-purple-700 text-white font-bold py-2 px-4 rounded"
             disabled={loading}
           >
-            {loading ? 'Thinking...' : 'Send'}
+            {loading ? 'Processing...' : 'Send'}
           </button>
           <button
             onClick={onClose}
@@ -51,9 +58,18 @@ export default function GodEyeModal({ isOpen, onClose }: { isOpen: boolean; onCl
             Close
           </button>
         </div>
+
+        {/* ✅ Response */}
         {response && (
           <div className="mt-4 text-sm text-green-400 whitespace-pre-wrap border-t border-gray-600 pt-2">
             {response}
+          </div>
+        )}
+
+        {/* ❌ Error */}
+        {error && (
+          <div className="mt-4 text-sm text-red-400 whitespace-pre-wrap border-t border-gray-600 pt-2">
+            {error}
           </div>
         )}
       </div>
