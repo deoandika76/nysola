@@ -1,5 +1,5 @@
 // utils/evaluator.ts
-import { db } from '../firebase';
+import db from '../firebase';
 import { addDoc, collection, Timestamp } from 'firebase/firestore';
 
 export async function evaluateHunterResult({
