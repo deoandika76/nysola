@@ -1,5 +1,5 @@
 // utils/executor.ts
-import { db } from '../firebase';
+import db from '../firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { Wallet, JsonRpcProvider } from 'ethers';
 
