@@ -17,25 +17,17 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };
 
+// ✅ Init Firebase app
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-const db = getFirestore(app);
-export default db;
+export const db = getFirestore(app);
 
-// ✅ Fungsi-fungsi tambahan opsional
+// 🔄 Optional Exports Lain Tetap Sama
 export async function fetchWallets() {
   const snapshot = await getDocs(collection(db, 'wallets'));
   return snapshot.docs.map((doc) => doc.data() as { address: string; privateKey: string });
 }
 
-export async function fetchTxHistory(): Promise<
-  {
-    id: string;
-    walletAddress: string;
-    txHash: string;
-    status: 'success' | 'failed';
-    timestamp: any;
-  }[]
-> {
+export async function fetchTxHistory() {
   const snapshot = await getDocs(collection(db, 'txHistory'));
   return snapshot.docs.map((doc) => {
     const data = doc.data();
