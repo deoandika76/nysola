@@ -1,51 +1,36 @@
-// pages/api/executor.ts
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { db } from '../../firebase';
-import { collection, getDocs, addDoc } from 'firebase/firestore';
-import { ethers } from 'ethers';
+// utils/executor.ts
+import { db } from '../firebase';
+import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { Wallet, JsonRpcProvider } from 'ethers';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') return res.status(405).end();
+const provider = new JsonRpcProvider(process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL!);
 
+export async function executeHunterTask(wallet: { address: string; privateKey: string }) {
   try {
-    const snapshot = await getDocs(collection(db, 'wallets'));
-    const wallets = snapshot.docs.map((doc) => doc.data());
+    const sender = new Wallet(wallet.privateKey, provider);
+    const tx = await sender.sendTransaction({
+      to: sender.address,
+      value: BigInt(1), // kirim kecil buat test
+    });
 
-    const txResults: any[] = [];
+    const result = await tx.wait();
 
-    for (const wallet of wallets) {
-      const provider = new ethers.JsonRpcProvider(process.env.SEPOLIA_RPC_URL);
-      const signer = new ethers.Wallet(wallet.privateKey, provider);
+    await addDoc(collection(db, 'txHistory'), {
+      walletAddress: wallet.address,
+      txHash: result.transactionHash,
+      status: 'success',
+      timestamp: Timestamp.now(),
+    });
 
-      try {
-        const tx = await signer.sendTransaction({
-          to: wallet.address,
-          value: ethers.parseEther('0.00001'),
-        });
+    return { success: true, hash: result.transactionHash };
+  } catch (err) {
+    await addDoc(collection(db, 'txHistory'), {
+      walletAddress: wallet.address,
+      txHash: 'ERROR',
+      status: 'failed',
+      timestamp: Timestamp.now(),
+    });
 
-        await addDoc(collection(db, 'txHistory'), {
-          walletAddress: wallet.address,
-          txHash: tx.hash,
-          status: 'success',
-          timestamp: new Date(),
-        });
-
-        txResults.push({ address: wallet.address, status: 'success', txHash: tx.hash });
-      } catch (err) {
-        await addDoc(collection(db, 'txHistory'), {
-          walletAddress: wallet.address,
-          txHash: '',
-          status: 'failed',
-          timestamp: new Date(),
-        });
-
-        txResults.push({ address: wallet.address, status: 'failed', error: (err as any).message });
-      }
-    }
-
-    res.status(200).json({ result: txResults });
-  } catch (error) {
-    console.error('[Executor Error]', error);
-    res.status(500).json({ error: 'GAGAL EKSEKUSI TRANSAKSI' });
+    return { success: false };
   }
 }
