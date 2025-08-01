@@ -17,17 +17,16 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };
 
-// ✅ Init Firebase app
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-export const db = getFirestore(app);
+const db = getFirestore(app);
+export default db;
 
-// 🔐 Ambil semua wallet dari koleksi `wallets`
+// ✅ Fungsi-fungsi tambahan opsional
 export async function fetchWallets() {
   const snapshot = await getDocs(collection(db, 'wallets'));
   return snapshot.docs.map((doc) => doc.data() as { address: string; privateKey: string });
 }
 
-// 📡 Ambil histori transaksi dari koleksi `txHistory`
 export async function fetchTxHistory(): Promise<
   {
     id: string;
@@ -50,7 +49,6 @@ export async function fetchTxHistory(): Promise<
   });
 }
 
-// 🔔 Listener realtime untuk notifikasi (dipakai di notifications.tsx)
 export function listenToNotifications(callback: (data: DocumentData[]) => void) {
   const notifRef = collection(db, 'notifications');
   return onSnapshot(notifRef, (snapshot) => {
