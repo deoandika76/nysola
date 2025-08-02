@@ -28,8 +28,9 @@ export default function Dashboard() {
         <title>Dashboard - Nysola</title>
       </Head>
 
+      {/* ✅ FIX: Lengkapi props isOpen & onClose */}
       <Header onToggleNavbar={() => setNavbarOpen(!navbarOpen)} />
-      <Navbar isOpen={navbarOpen} />
+      <Navbar isOpen={navbarOpen} onClose={() => setNavbarOpen(false)} />
 
       <main className="pt-20 px-6 md:px-16 pb-12 bg-black min-h-screen text-white">
         <h1 className="text-3xl font-bold mb-6 text-cyan">📊 Dashboard Analytics</h1>
