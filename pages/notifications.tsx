@@ -1,4 +1,5 @@
 // pages/notifications.tsx
+// cuma komen
 import { useEffect, useState } from 'react';
 import { listenToNotifications } from '../firebase';
 import FullLayout from '../components/FullLayout';
