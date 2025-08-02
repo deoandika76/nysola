@@ -1,4 +1,4 @@
-// components/Layout.tsx
+// components/Layout.tsx/
 import { useState } from 'react';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
