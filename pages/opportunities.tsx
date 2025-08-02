@@ -1,10 +1,19 @@
-import Layout from '../components/Layout';
+// pages/opportunities.tsx
+import FullLayout from '../components/FullLayout';
+import Head from 'next/head';
 
 export default function Opportunities() {
   return (
-    <Layout>
-      <h1 className="text-2xl font-bold text-orchid">Opportunities</h1>
-      <p className="mt-2 text-gray-400">Proyek hype, alpha list, dan peluang cuan yang ditemukan Nysola.</p>
-    </Layout>
+    <>
+      <Head>
+        <title>Opportunities - Nysola</title>
+      </Head>
+      <FullLayout>
+        <h1 className="text-3xl font-bold text-green-400 mb-6">💰 Opportunities</h1>
+        <p className="text-gray-300">Temukan peluang cuan gratis dari testnet, faucet, swap, Galxe, Zealy, dan lainnya.</p>
+        {/* 🔮 Tambahkan konten dinamis di sini nanti */}
+        <div className="mt-6 text-gray-400">Belum ada data peluang saat ini.</div>
+      </FullLayout>
+    </>
   );
 }
