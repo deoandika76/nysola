@@ -43,7 +43,7 @@ export async function fetchTxHistory(): Promise<
       walletAddress: data.walletAddress ?? '',
       txHash: data.txHash ?? '',
       status: data.status ?? 'failed',
-      timestamp: data.timestamp ?? Timestamp.now(), // fallback aman
+      timestamp: data.timestamp ?? Timestamp.now(),
     };
   });
 }
@@ -53,5 +53,31 @@ export function listenToNotifications(callback: (data: DocumentData[]) => void) 
   return onSnapshot(notifRef, (snapshot) => {
     const notifs = snapshot.docs.map((doc) => doc.data());
     callback(notifs);
+  });
+}
+
+// ✅ Realtime listener untuk dashboard analytics
+export function listenToTxHistory(callback: (
+  data: {
+    id: string;
+    walletAddress: string;
+    txHash: string;
+    status: 'success' | 'failed';
+    timestamp: Timestamp;
+  }[]
+) => void) {
+  const txRef = collection(db, 'txHistory');
+  return onSnapshot(txRef, (snapshot) => {
+    const txs = snapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        walletAddress: data.walletAddress ?? '',
+        txHash: data.txHash ?? '',
+        status: data.status ?? 'failed',
+        timestamp: data.timestamp ?? Timestamp.now(),
+      };
+    });
+    callback(txs);
   });
 }
