@@ -1,50 +1,60 @@
-import { useState } from 'react';
-import Layout from '../components/Layout';
+// pages/auto.tsx
+import { useEffect, useState } from 'react';
+import { db } from '../firebase';
+import { collection, getDocs } from 'firebase/firestore';
+import FullLayout from '../components/FullLayout';
+
+type AutoTx = {
+  id: string;
+  walletAddress: string;
+  txHash: string;
+  status: 'pending' | 'success' | 'failed';
+  createdAt: {
+    seconds: number;
+  };
+};
 
 export default function AutoTaskPage() {
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState('');
+  const [autoTxs, setAutoTxs] = useState<AutoTx[]>([]);
 
-  const handleRunAutoTask = async () => {
-    setLoading(true);
-    setResult('');
-
-    try {
-      const res = await fetch('/api/autoTask', {
-        method: 'POST',
+  useEffect(() => {
+    const fetchAutoTxs = async () => {
+      const snapshot = await getDocs(collection(db, 'autoTasks'));
+      const data = snapshot.docs.map((doc) => {
+        const raw = doc.data() as Omit<AutoTx, 'id'>;
+        return { ...raw, id: doc.id };
       });
+      setAutoTxs(data);
+    };
 
-      const data = await res.json();
-      if (res.ok) {
-        setResult(JSON.stringify(data.results, null, 2));
-      } else {
-        setResult(`❌ Gagal: ${data.message || data.error}`);
-      }
-    } catch (err: any) {
-      setResult(`❌ Error: ${err.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchAutoTxs();
+  }, []);
 
   return (
-    <Layout>
-      <h1 className="text-2xl font-bold text-purple-500 mb-4">🤖 Jalankan Auto Task</h1>
-      <p className="mb-6 text-gray-400">Fitur ini akan menjalankan transaksi otomatis dari semua wallet testnet.</p>
+    <FullLayout title="Auto Task">
+      <h1 className="text-3xl font-bold mb-6 text-purple-400">🤖 Auto Task History</h1>
 
-      <button
-        onClick={handleRunAutoTask}
-        disabled={loading}
-        className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 disabled:opacity-50"
-      >
-        {loading ? 'Menjalankan...' : '🚀 Jalankan Auto Task'}
-      </button>
+      {autoTxs.length === 0 && <p className="text-gray-400">Belum ada transaksi otomatis.</p>}
 
-      {result && (
-        <pre className="mt-6 bg-black text-green-400 p-4 rounded overflow-x-auto text-sm whitespace-pre-wrap break-words">
-          {result}
-        </pre>
-      )}
-    </Layout>
+      <div className="space-y-4">
+        {autoTxs.map((tx) => (
+          <div
+            key={tx.id}
+            className={`p-4 rounded shadow border-l-4 ${
+              tx.status === 'success'
+                ? 'border-green-500 bg-green-900'
+                : tx.status === 'failed'
+                ? 'border-red-500 bg-red-900'
+                : 'border-yellow-500 bg-yellow-900'
+            }`}
+          >
+            <p>👛 Wallet: <span className="text-cyan-300">{tx.walletAddress}</span></p>
+            <p>🔗 TX Hash: <a href={`https://sepolia.etherscan.io/tx/${tx.txHash}`} target="_blank" className="text-blue-400 underline">{tx.txHash}</a></p>
+            <p>📅 Time: {new Date(tx.createdAt.seconds * 1000).toLocaleString('id-ID')}</p>
+            <p>Status: <span className="uppercase">{tx.status}</span></p>
+          </div>
+        ))}
+      </div>
+    </FullLayout>
   );
 }
