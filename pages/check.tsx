@@ -1,4 +1,4 @@
-// pages/check.tsx
+// pages/check.tsx/
 import FullLayout from '../components/FullLayout';
 import Head from 'next/head';
 
