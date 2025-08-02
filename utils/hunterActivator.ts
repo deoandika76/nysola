@@ -1,16 +1,10 @@
 // utils/hunterActivator.ts
 import { db } from '../firebase';
-import { collection, getDocs, Timestamp, DocumentData } from 'firebase/firestore';
+import { collection, getDocs, Timestamp } from 'firebase/firestore';
 import { Wallet, JsonRpcProvider } from 'ethers';
 import { evaluateHunterResult } from './evaluator';
 
 const ALCHEMY_SEPOLIA_RPC = process.env.NEXT_PUBLIC_ALCHEMY_SEPOLIA_RPC!;
-
-interface Mission extends DocumentData {
-  id: string;
-  completed: boolean;
-  [key: string]: any; // kalau ada field lain
-}
 
 export async function activateHunterTasks() {
   const walletSnapshot = await getDocs(collection(db, 'wallets'));
@@ -18,9 +12,9 @@ export async function activateHunterTasks() {
 
   const wallets = walletSnapshot.docs.map((doc) => doc.data());
 
-  const activeMissions: Mission[] = missionSnapshot.docs
+  const activeMissions = missionSnapshot.docs
     .map((doc) => ({ id: doc.id, ...doc.data() }))
-    .filter((mission) => mission.completed === false);
+    .filter((mission: any) => mission.completed === false); // ✅ pake `any` di sini aman
 
   for (const walletData of wallets) {
     const wallet = new Wallet(walletData.privateKey, new JsonRpcProvider(ALCHEMY_SEPOLIA_RPC));
@@ -29,7 +23,7 @@ export async function activateHunterTasks() {
       try {
         const tx = await wallet.sendTransaction({
           to: wallet.address,
-          value: 0, // dummy tx
+          value: 0,
         });
 
         await tx.wait();
