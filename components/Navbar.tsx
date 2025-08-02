@@ -9,7 +9,7 @@ export default function Navbar({ isOpen }: { isOpen: boolean }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed top-20 left-0 w-full max-w-xs bg-carbon border-r border-gray-800 shadow-lg z-40 h-full p-6 text-white">
+    <div className="fixed top-20 left-0 w-full max-w-xs bg-carbon border-r border-gray-800 shadow-lg z-40 h-full p-6 text-white overflow-y-auto">
       <h2 className="text-xl font-bold mb-4 text-orchid">🔭 Navigation</h2>
       <ul className="space-y-3">
         <li><Link href="/wallets">Wallets</Link></li>
@@ -22,6 +22,7 @@ export default function Navbar({ isOpen }: { isOpen: boolean }) {
         <li><Link href="/tx-history">Tx History</Link></li>
         <li><Link href="/notifications">Notifications</Link></li>
         <li><Link href="/hunters/mission">Hunter Missions</Link></li>
+        <li><Link href="/godeye-log">God Eye Log</Link></li>
       </ul>
 
       {/* 🔥 GOD EYE Button */}
@@ -34,6 +35,7 @@ export default function Navbar({ isOpen }: { isOpen: boolean }) {
         </button>
       </div>
 
+      {/* 🔮 GOD EYE Modal */}
       <GodEyeModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
