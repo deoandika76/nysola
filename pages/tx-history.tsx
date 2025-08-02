@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import TxCard from '../components/TxCard';
-import Layout from '../components/Layout';
+import FullLayout from '../components/FullLayout';
 
 interface Tx {
   from: string;
@@ -27,7 +27,7 @@ export default function TxHistory() {
   }, []);
 
   return (
-    <Layout>
+    <FullLayout title="Transaction History">
       <h1 className="text-3xl font-bold mb-6 text-purple-500">📜 Transaction History</h1>
       <div className="grid gap-4">
         {txs.length === 0 && <p className="text-gray-400">Belum ada transaksi tercatat.</p>}
@@ -42,6 +42,6 @@ export default function TxHistory() {
           />
         ))}
       </div>
-    </Layout>
+    </FullLayout>
   );
 }
