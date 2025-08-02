@@ -1,50 +1,83 @@
-// pages/dashboard.tsx
-import { useEffect, useState } from 'react';
-import Head from 'next/head';
-import DashboardCard from '../components/DashboardCard';
-import { fetchTxHistory } from '../firebase';
-import Header from '../components/Header';
-import Navbar from '../components/Navbar';
+// firebase.ts
+import { initializeApp, getApps } from 'firebase/app';
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  onSnapshot,
+  DocumentData,
+  Timestamp,
+} from 'firebase/firestore';
 
-export default function Dashboard() {
-  const [txCount, setTxCount] = useState(0);
-  const [successCount, setSuccessCount] = useState(0);
-  const [failedCount, setFailedCount] = useState(0);
-  const [navbarOpen, setNavbarOpen] = useState(false);
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
+};
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const data = await fetchTxHistory();
-        console.log('Fetched txHistory:', data); // 👈 debug
-        setTxCount(data.length);
-        setSuccessCount(data.filter((d) => d.status === 'success').length);
-        setFailedCount(data.filter((d) => d.status === 'failed').length);
-      } catch (err) {
-        console.error('Failed to load txHistory:', err);
-      }
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+export const db = getFirestore(app);
+
+export async function fetchWallets() {
+  const snapshot = await getDocs(collection(db, 'wallets'));
+  return snapshot.docs.map((doc) => doc.data() as { address: string; privateKey: string });
+}
+
+export async function fetchTxHistory(): Promise<
+  {
+    id: string;
+    walletAddress: string;
+    txHash: string;
+    status: 'success' | 'failed';
+    timestamp: Timestamp;
+  }[]
+> {
+  const snapshot = await getDocs(collection(db, 'txHistory'));
+  return snapshot.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      walletAddress: data.walletAddress ?? '',
+      txHash: data.txHash ?? '',
+      status: data.status ?? 'failed',
+      timestamp: data.timestamp ?? Timestamp.now(),
     };
-    loadData();
-  }, []);
+  });
+}
 
-  return (
-    <>
-      <Head>
-        <title>Dashboard - Nysola</title>
-      </Head>
+export function listenToNotifications(callback: (data: DocumentData[]) => void) {
+  const notifRef = collection(db, 'notifications');
+  return onSnapshot(notifRef, (snapshot) => {
+    const notifs = snapshot.docs.map((doc) => doc.data());
+    callback(notifs);
+  });
+}
 
-      <Header onToggleNavbar={() => setNavbarOpen(!navbarOpen)} />
-      <Navbar isOpen={navbarOpen} />
-
-      <main className="pt-20 px-6 md:px-16 pb-12 bg-black min-h-screen text-white">
-        <h1 className="text-3xl font-bold mb-6 text-cyan">📊 Dashboard Analytics</h1>
-
-        <div className="flex flex-wrap gap-6 justify-center">
-          <DashboardCard title="Total Transactions" value={txCount.toString()} icon="📦" />
-          <DashboardCard title="Success" value={successCount.toString()} icon="✅" color="text-green-400" />
-          <DashboardCard title="Failed" value={failedCount.toString()} icon="❌" color="text-red-500" />
-        </div>
-      </main>
-    </>
-  );
+// ✅ Realtime listener untuk dashboard analytics
+export function listenToTxHistory(callback: (
+  data: {
+    id: string;
+    walletAddress: string;
+    txHash: string;
+    status: 'success' | 'failed';
+    timestamp: Timestamp;
+  }[]
+) => void) {
+  const txRef = collection(db, 'txHistory');
+  return onSnapshot(txRef, (snapshot) => {
+    const txs = snapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        walletAddress: data.walletAddress ?? '',
+        txHash: data.txHash ?? '',
+        status: data.status ?? 'failed',
+        timestamp: data.timestamp ?? Timestamp.now(),
+      };
+    });
+    callback(txs);
+  });
 }
