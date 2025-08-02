@@ -1,18 +1,22 @@
+// components/FullLayout.tsx
+import Head from 'next/head';
 import { ReactNode } from 'react';
-import Sidebar from './Sidebar';
 
-interface FullLayoutProps {
+export default function FullLayout({
+  children,
+  title,
+}: {
   children: ReactNode;
-  title?: string; // ✅ Tambahin ini biar nggak error pas dipanggil
-}
-
-export default function FullLayout({ children }: FullLayoutProps) {
+  title?: string;
+}) {
   return (
-    <div className="flex">
-      <Sidebar isOpen={true} />
-      <main className="md:ml-64 w-full p-4 sm:p-6 md:p-8 bg-black text-white min-h-screen">
+    <>
+      <Head>
+        <title>{title ?? 'Nysola'}</title>
+      </Head>
+      <div className="min-h-screen bg-black text-white pt-20 px-6 md:px-16 pb-12">
         {children}
-      </main>
-    </div>
+      </div>
+    </>
   );
 }
