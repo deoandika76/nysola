@@ -1,4 +1,4 @@
-// components/Navbar.tsx
+// components/Navbar.tsx/tai
 import Link from 'next/link';
 import { useState } from 'react';
 import GodEyeModal from './GodEyeModal';
