@@ -1,64 +1,57 @@
-import Layout from '../components/Layout';
-import { useState } from 'react';
-import ErrorBox from '../components/ErrorBox';
+// pages/tasks.tsx
+import { useEffect, useState } from 'react';
+import { db } from '../firebase';
+import { collection, getDocs } from 'firebase/firestore';
+import FullLayout from '../components/FullLayout';
 
-export default function Tasks() {
-  const [result, setResult] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleSendTx = async () => {
-    setLoading(true);
-    setResult('');
-    setError('');
-
-    try {
-      const response = await fetch('/api/sendTx', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          to: '0x122CAa6b1cD0F4E3b30bfB85F22ec6c777Ee4c04', // Wallet tujuan testnet Sepolia
-          value: '0.001', // ETH dalam string
-          privateKey: '0xc07edecf92f3a28d931449a4ca8bf076cf45dd23feb71c11cbae022712c8ad99', // Private key testnet kamu
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setResult(`✅ TX berhasil dikirim: ${data.txHash}`);
-      } else {
-        setError(data.message || 'Terjadi kesalahan');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Kesalahan jaringan');
-    } finally {
-      setLoading(false);
-    }
+type Task = {
+  id: string;
+  type: string;
+  walletAddress: string;
+  status: 'pending' | 'success' | 'failed';
+  createdAt: {
+    seconds: number;
   };
+};
+
+export default function TasksPage() {
+  const [tasks, setTasks] = useState<Task[]>([]);
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      const snapshot = await getDocs(collection(db, 'tasks'));
+      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as Task) }));
+      setTasks(data);
+    };
+
+    fetchTasks();
+  }, []);
 
   return (
-    <Layout>
-      <h1 className="text-3xl font-bold text-purple-500 mb-4">Tasks</h1>
-      <p className="text-gray-400 mb-6">Test pengiriman transaksi testnet Sepolia</p>
+    <FullLayout title="Tasks">
+      <h1 className="text-3xl font-bold mb-6 text-purple-400">🧠 Task Executor</h1>
 
-      <button
-        onClick={handleSendTx}
-        disabled={loading}
-        className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition disabled:opacity-50"
-      >
-        {loading ? 'Mengirim...' : 'Kirim Testnet TX 🚀'}
-      </button>
+      {tasks.length === 0 && <p className="text-gray-400">Belum ada task terdaftar.</p>}
 
-      {result && (
-        <div className="mt-4 bg-black text-green-400 p-4 rounded font-mono">
-          {result}
-        </div>
-      )}
-
-      {error && <ErrorBox message={error} />}
-    </Layout>
+      <div className="grid gap-4">
+        {tasks.map((task) => (
+          <div
+            key={task.id}
+            className={`p-4 rounded shadow border-l-4 ${
+              task.status === 'success'
+                ? 'border-green-500 bg-green-900'
+                : task.status === 'failed'
+                ? 'border-red-500 bg-red-900'
+                : 'border-yellow-500 bg-yellow-900'
+            }`}
+          >
+            <p>⚙️ Type: <span className="font-bold">{task.type}</span></p>
+            <p>👛 Wallet: <span className="text-cyan-300">{task.walletAddress}</span></p>
+            <p>📅 Time: {new Date(task.createdAt.seconds * 1000).toLocaleString('id-ID')}</p>
+            <p>Status: <span className="uppercase">{task.status}</span></p>
+          </div>
+        ))}
+      </div>
+    </FullLayout>
   );
 }
