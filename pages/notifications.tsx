@@ -1,7 +1,7 @@
 // pages/notifications.tsx
 import { useEffect, useState } from 'react';
 import { listenToNotifications } from '../firebase';
-import Layout from '../components/Layout';
+import FullLayout from '../components/FullLayout';
 
 type Notification = {
   message: string;
@@ -22,7 +22,7 @@ export default function NotificationsPage() {
       setNotifs(sorted);
     });
 
-    return () => unsubscribe(); // cleanup
+    return () => unsubscribe();
   }, []);
 
   const getColor = (type: Notification['type']) => {
@@ -39,7 +39,7 @@ export default function NotificationsPage() {
   };
 
   return (
-    <Layout>
+    <FullLayout title="Notifications">
       <h1 className="text-2xl font-bold text-orchid mb-4">📢 Notifications</h1>
       <p className="text-gray-400 mb-6">Log: task sukses, gagal, blacklist, reward masuk</p>
 
@@ -60,6 +60,6 @@ export default function NotificationsPage() {
           </div>
         ))}
       </div>
-    </Layout>
+    </FullLayout>
   );
 }
