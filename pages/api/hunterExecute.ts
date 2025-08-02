@@ -1,4 +1,4 @@
-// pages/api/hunterExecute.ts
+// pages/api/hunterExecute.ts // h
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '@/firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
