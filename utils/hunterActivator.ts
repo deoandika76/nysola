@@ -1,6 +1,6 @@
 // utils/hunterActivator.ts
 import { db } from '../firebase';
-import { collection, getDocs, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, addDoc, Timestamp } from 'firebase/firestore';
 import { Wallet, JsonRpcProvider } from 'ethers';
 import { evaluateHunterResult } from './evaluator';
 
@@ -14,7 +14,7 @@ export async function activateHunterTasks() {
 
   const activeMissions = missionSnapshot.docs
     .map((doc) => ({ id: doc.id, ...doc.data() }))
-    .filter((mission: any) => mission.completed === false); // ✅ pake `any` di sini aman
+    .filter((mission: any) => mission.completed === false);
 
   for (const walletData of wallets) {
     const wallet = new Wallet(walletData.privateKey, new JsonRpcProvider(ALCHEMY_SEPOLIA_RPC));
@@ -28,7 +28,7 @@ export async function activateHunterTasks() {
 
         await tx.wait();
 
-        await db.collection('txHistory').add({
+        await addDoc(collection(db, 'txHistory'), {
           walletAddress: wallet.address,
           txHash: tx.hash,
           status: 'success',
@@ -42,9 +42,9 @@ export async function activateHunterTasks() {
           status: 'success',
         });
       } catch (error) {
-        console.error(`❌ Gagal TX: ${wallet.address} - ${mission.id}`, error);
+        console.error(`❌ TX Error: ${wallet.address} - ${mission.id}`, error);
 
-        await db.collection('txHistory').add({
+        await addDoc(collection(db, 'txHistory'), {
           walletAddress: wallet.address,
           txHash: '',
           status: 'failed',
