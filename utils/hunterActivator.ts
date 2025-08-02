@@ -1,17 +1,24 @@
 // utils/hunterActivator.ts
 import { db } from '../firebase';
-import { collection, getDocs, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, Timestamp, DocumentData } from 'firebase/firestore';
 import { Wallet, JsonRpcProvider } from 'ethers';
 import { evaluateHunterResult } from './evaluator';
 
 const ALCHEMY_SEPOLIA_RPC = process.env.NEXT_PUBLIC_ALCHEMY_SEPOLIA_RPC!;
+
+interface Mission extends DocumentData {
+  id: string;
+  completed: boolean;
+  [key: string]: any; // kalau ada field lain
+}
 
 export async function activateHunterTasks() {
   const walletSnapshot = await getDocs(collection(db, 'wallets'));
   const missionSnapshot = await getDocs(collection(db, 'missionsProgress'));
 
   const wallets = walletSnapshot.docs.map((doc) => doc.data());
-  const activeMissions = missionSnapshot.docs
+
+  const activeMissions: Mission[] = missionSnapshot.docs
     .map((doc) => ({ id: doc.id, ...doc.data() }))
     .filter((mission) => mission.completed === false);
 
@@ -22,12 +29,11 @@ export async function activateHunterTasks() {
       try {
         const tx = await wallet.sendTransaction({
           to: wallet.address,
-          value: 0, // Dummy TX, replace with logic sesuai jenis misi nanti
+          value: 0, // dummy tx
         });
 
         await tx.wait();
 
-        // Simpan hasil transaksi ke koleksi txHistory
         await db.collection('txHistory').add({
           walletAddress: wallet.address,
           txHash: tx.hash,
@@ -35,7 +41,6 @@ export async function activateHunterTasks() {
           timestamp: Timestamp.now(),
         });
 
-        // Evaluasi hasil
         await evaluateHunterResult({
           walletAddress: wallet.address,
           txHash: tx.hash,
@@ -43,7 +48,7 @@ export async function activateHunterTasks() {
           status: 'success',
         });
       } catch (error) {
-        console.error(`Gagal TX untuk ${wallet.address} - ${mission.id}`, error);
+        console.error(`❌ Gagal TX: ${wallet.address} - ${mission.id}`, error);
 
         await db.collection('txHistory').add({
           walletAddress: wallet.address,
