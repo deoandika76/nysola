@@ -5,13 +5,10 @@ import {
   collection,
   getDocs,
   onSnapshot,
-  query,
-  orderBy,
   DocumentData,
   Timestamp,
 } from 'firebase/firestore';
 
-// ✅ Konfigurasi Firebase
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
@@ -21,17 +18,14 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };
 
-// ✅ Inisialisasi Firebase App
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 export const db = getFirestore(app);
 
-// 🔐 Ambil semua wallet dari koleksi `wallets`
 export async function fetchWallets() {
   const snapshot = await getDocs(collection(db, 'wallets'));
   return snapshot.docs.map((doc) => doc.data() as { address: string; privateKey: string });
 }
 
-// 📊 Ambil histori transaksi dari koleksi `txHistory` urut terbaru
 export async function fetchTxHistory(): Promise<
   {
     id: string;
@@ -41,21 +35,19 @@ export async function fetchTxHistory(): Promise<
     timestamp: Timestamp;
   }[]
 > {
-  const txRef = query(collection(db, 'txHistory'), orderBy('timestamp', 'desc'));
-  const snapshot = await getDocs(txRef);
+  const snapshot = await getDocs(collection(db, 'txHistory'));
   return snapshot.docs.map((doc) => {
     const data = doc.data();
     return {
       id: doc.id,
-      walletAddress: data.walletAddress,
-      txHash: data.txHash,
-      status: data.status,
-      timestamp: data.timestamp,
+      walletAddress: data.walletAddress ?? '',
+      txHash: data.txHash ?? '',
+      status: data.status ?? 'failed',
+      timestamp: data.timestamp ?? Timestamp.now(), // fallback aman
     };
   });
 }
 
-// 🔔 Listener realtime untuk notifikasi (dipakai di notifications.tsx)
 export function listenToNotifications(callback: (data: DocumentData[]) => void) {
   const notifRef = collection(db, 'notifications');
   return onSnapshot(notifRef, (snapshot) => {
