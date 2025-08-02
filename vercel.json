@@ -1,3 +1,5 @@
 {
-  "version": 2
+  "cron": {
+    "scheduler": "0 * * * *" // contoh: tiap jam
+  }
 }
