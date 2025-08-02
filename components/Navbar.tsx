@@ -25,6 +25,7 @@ export default function Navbar({ isOpen, onClose }: NavbarProps) {
     { name: 'Notifications', href: '/notifications' },
     { name: 'Hunter Missions', href: '/hunters/mission' },
     { name: 'God Eye Log', href: '/godeye-log' },
+    { name: 'Settings', href: '/settings' },
   ];
 
   return (
