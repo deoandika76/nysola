@@ -1,4 +1,4 @@
-// pages/godeye-log.tsx
+// pages/godeye-log.tsx/
 import { useEffect, useState } from 'react';
 import { db } from '../firebase';
 import { collection, onSnapshot, Timestamp } from 'firebase/firestore';
