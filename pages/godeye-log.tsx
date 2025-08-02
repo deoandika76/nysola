@@ -1,43 +1,58 @@
-// pages/godeye-log.tsx/
+// pages/godeye-log.tsx
 import { useEffect, useState } from 'react';
 import { db } from '../firebase';
-import { collection, onSnapshot, Timestamp } from 'firebase/firestore';
-import GodEyeLogCard from '../components/GodEyeLogCard';
+import { collection, getDocs, Timestamp } from 'firebase/firestore';
+import Layout from '../components/Layout';
 
-type GodEyeLog = {
+interface Log {
   id: string;
   prompt: string;
-  result: string;
+  response: string;
   timestamp: Timestamp;
-};
+}
 
 export default function GodEyeLogPage() {
-  const [logs, setLogs] = useState<GodEyeLog[]>([]);
+  const [logs, setLogs] = useState<Log[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, 'godeyeLogs'), (snapshot) => {
-      const fetched: GodEyeLog[] = snapshot.docs.map((doc) => ({
+    async function fetchLogs() {
+      const snapshot = await getDocs(collection(db, 'godeyeLogs'));
+      const data = snapshot.docs.map((doc) => ({
         id: doc.id,
-        ...(doc.data() as Omit<GodEyeLog, 'id'>),
+        ...(doc.data() as Omit<Log, 'id'>),
       }));
+      setLogs(data);
+      setLoading(false);
+    }
 
-      // Urutkan dari terbaru
-      setLogs(fetched.sort((a, b) => b.timestamp.seconds - a.timestamp.seconds));
-    });
-
-    return () => unsub();
+    fetchLogs();
   }, []);
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-orchid mb-6">📜 God Eye Logs</h1>
-      <div className="space-y-4">
-        {logs.length === 0 ? (
-          <p className="text-gray-400">Belum ada evaluasi.</p>
+    <Layout>
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold text-orchid">📜 GOD EYE Logs</h1>
+        {loading ? (
+          <p className="text-gray-400">Loading logs...</p>
+        ) : logs.length === 0 ? (
+          <p className="text-gray-500">Belum ada log yang tercatat.</p>
         ) : (
-          logs.map((log) => <GodEyeLogCard key={log.id} log={log} />)
+          <ul className="space-y-4">
+            {logs.map((log) => (
+              <li key={log.id} className="border border-gray-700 rounded-lg p-4 bg-carbon/70">
+                <p className="text-sm text-gray-400 mb-1">
+                  {log.timestamp.toDate().toLocaleString()}
+                </p>
+                <p className="font-semibold text-cyan-400">🧾 Prompt:</p>
+                <p className="whitespace-pre-wrap mb-2">{log.prompt}</p>
+                <p className="font-semibold text-green-400">🤖 Response:</p>
+                <p className="whitespace-pre-wrap text-white">{log.response}</p>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
-    </div>
+    </Layout>
   );
 }
