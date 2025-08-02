@@ -1,8 +1,21 @@
 // components/FullLayout.tsx
-export default function FullLayout({ children }: { children: React.ReactNode }) {
+import Head from 'next/head';
+import { ReactNode } from 'react';
+
+interface FullLayoutProps {
+  children: ReactNode;
+  title?: string;
+}
+
+export default function FullLayout({ children, title }: FullLayoutProps) {
   return (
-    <div className="bg-carbon text-white min-h-screen w-full p-4 sm:p-6 md:p-8">
-      {children}
-    </div>
+    <>
+      <Head>
+        <title>{title ? `${title} - Nysola` : 'Nysola'}</title>
+      </Head>
+      <main className="pt-20 px-6 md:px-16 pb-12 bg-black min-h-screen text-white">
+        {children}
+      </main>
+    </>
   );
 }
