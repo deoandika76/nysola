@@ -1,14 +1,11 @@
 // pages/notifications.tsx
-// cuma komen
 import { useEffect, useState } from 'react';
 import { listenToNotifications } from '../firebase';
 import FullLayout from '../components/FullLayout';
 
 type Notification = {
   message: string;
-  timestamp: {
-    seconds: number;
-  };
+  timestamp: { seconds: number };
   type: 'success' | 'error' | 'alert';
 };
 
@@ -42,11 +39,11 @@ export default function NotificationsPage() {
   return (
     <FullLayout title="Notifications">
       <h1 className="text-2xl font-bold text-orchid mb-4">📢 Notifications</h1>
-      <p className="text-gray-400 mb-6">Log: task sukses, gagal, blacklist, reward masuk</p>
+      <p className="text-gray-400 mb-6">
+        Log: task sukses, gagal, blacklist, reward masuk
+      </p>
 
-      {notifs.length === 0 && (
-        <p className="text-gray-500">Belum ada notifikasi.</p>
-      )}
+      {notifs.length === 0 && <p className="text-gray-500">Belum ada notifikasi.</p>}
 
       <div className="space-y-4">
         {notifs.map((notif, idx) => (
