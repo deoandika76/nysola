@@ -1,10 +1,12 @@
-// firebase.ts // hhhh
+// firebase.ts
 import { initializeApp, getApps } from 'firebase/app';
 import {
   getFirestore,
   collection,
   getDocs,
   onSnapshot,
+  query,
+  orderBy,
   DocumentData,
   Timestamp,
 } from 'firebase/firestore';
@@ -29,17 +31,18 @@ export async function fetchWallets() {
   return snapshot.docs.map((doc) => doc.data() as { address: string; privateKey: string });
 }
 
-// 📊 Ambil histori transaksi dari koleksi `txHistory`
+// 📊 Ambil histori transaksi dari koleksi `txHistory` urut terbaru
 export async function fetchTxHistory(): Promise<
   {
     id: string;
     walletAddress: string;
     txHash: string;
     status: 'success' | 'failed';
-    timestamp: any;
+    timestamp: Timestamp;
   }[]
 > {
-  const snapshot = await getDocs(collection(db, 'txHistory'));
+  const txRef = query(collection(db, 'txHistory'), orderBy('timestamp', 'desc'));
+  const snapshot = await getDocs(txRef);
   return snapshot.docs.map((doc) => {
     const data = doc.data();
     return {
