@@ -20,7 +20,10 @@ export default function TasksPage() {
   useEffect(() => {
     const fetchTasks = async () => {
       const snapshot = await getDocs(collection(db, 'tasks'));
-      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as Task) }));
+      const data = snapshot.docs.map((doc) => {
+        const raw = doc.data() as Omit<Task, 'id'>;
+        return { ...raw, id: doc.id };
+      });
       setTasks(data);
     };
 
