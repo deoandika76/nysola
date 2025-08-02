@@ -5,8 +5,8 @@ import {
   collection,
   getDocs,
   onSnapshot,
-  DocumentData,
   Timestamp,
+  type DocumentData // ✅ <- di sini pakai `type`
 } from 'firebase/firestore';
 
 // Konfigurasi dari .env
@@ -23,17 +23,18 @@ const firebaseConfig = {
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 const db = getFirestore(app);
 
-// ✅ Export tunggal & konsisten
+// ✅ Export fungsi dan konstanta
 export {
   db,
   collection,
   getDocs,
   onSnapshot,
-  DocumentData,
   Timestamp,
 };
 
-// Optional function
+export type { DocumentData };
+
+// 📥 Ambil semua wallet dari koleksi `wallets`
 export async function fetchWallets() {
   const snapshot = await getDocs(collection(db, 'wallets'));
   return snapshot.docs.map((doc) => doc.data() as { address: string; privateKey: string });
