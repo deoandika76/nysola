@@ -1,4 +1,4 @@
-// utils/hunterActivator.ts
+// utils/hunterActivator.ts fix
 import { db } from '../firebase';
 import { collection, getDocs, addDoc, Timestamp } from 'firebase/firestore';
 import { Wallet, JsonRpcProvider } from 'ethers';
