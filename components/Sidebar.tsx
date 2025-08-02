@@ -1,35 +1,41 @@
+// components/Navbar.tsx
 import Link from 'next/link';
+import { useState } from 'react';
+import GodEyeModal from './GodEyeModal';
 
-const menuItems = [
-  { name: 'Dashboard', href: '/' },
-  { name: 'Wallets', href: '/wallets' },
-  { name: 'Tasks', href: '/tasks' },
-  { name: 'Auto Task', href: '/auto' },
-  { name: 'Schedule TX', href: '/schedule' },
-  { name: 'Check Schedule', href: '/check' },
-  { name: 'Opportunities', href: '/opportunities' },
-  { name: 'Hunter', href: '/hunter' }, // ✅ Added here
-  { name: 'Notifications', href: '/notifications' },
-  { name: 'Settings', href: '/settings' },
-  { name: 'God Eye Log', href: '/godeye-log' },
-  { name: 'Tx History', href: '/tx-history' },
-];
+export default function Navbar({ isOpen }: { isOpen: boolean }) {
+  const [modalOpen, setModalOpen] = useState(false);
 
-export default function Sidebar() {
+  if (!isOpen) return null;
+
   return (
-    <div className="w-full md:w-64 md:h-screen bg-carbon text-white md:fixed top-0 left-0 shadow-lg p-4 md:p-6 space-y-4 md:space-y-6 z-10">
-      <h1 className="text-2xl font-bold text-orchid">Nysola</h1>
-      <ul className="space-y-2 md:space-y-3">
-        {menuItems.map((item) => (
-          <li key={item.name}>
-            <Link href={item.href}>
-              <span className="block hover:text-cyan transition cursor-pointer">
-                {item.name}
-              </span>
-            </Link>
-          </li>
-        ))}
+    <div className="fixed top-20 left-0 w-full max-w-xs bg-carbon border-r border-gray-800 shadow-lg z-40 h-full p-6 text-white">
+      <h2 className="text-xl font-bold mb-4 text-orchid">🔭 Navigation</h2>
+      <ul className="space-y-3">
+        <li><Link href="/wallets">Wallets</Link></li>
+        <li><Link href="/tasks">Tasks</Link></li>
+        <li><Link href="/auto">Auto Task</Link></li>
+        <li><Link href="/schedule">Schedule TX</Link></li>
+        <li><Link href="/check">Check Schedule</Link></li>
+        <li><Link href="/opportunities">Opportunities</Link></li>
+        <li><Link href="/hunter">Hunter</Link></li>
+        <li><Link href="/tx-history">Tx History</Link></li>
+        <li><Link href="/notifications">Notifications</Link></li>
+        <li><Link href="/hunters/mission">Hunter Missions</Link></li>
+        <li><Link href="/godeye-log">God Eye Log</Link></li> {/* 🟣 Tambahan ini */}
       </ul>
+
+      {/* 🔥 GOD EYE Button */}
+      <div className="mt-6">
+        <button
+          onClick={() => setModalOpen(true)}
+          className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-pink-600 hover:to-purple-600 text-white font-bold py-2 px-4 rounded"
+        >
+          👁️‍🔥 Activate GOD EYE
+        </button>
+      </div>
+
+      <GodEyeModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
 }
