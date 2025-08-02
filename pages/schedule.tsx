@@ -1,71 +1,64 @@
 // pages/schedule.tsx
+import { useEffect, useState } from 'react';
+import { db } from '../firebase';
+import { collection, getDocs } from 'firebase/firestore';
+import FullLayout from '../components/FullLayout';
 
-import { useState } from 'react';
-import Layout from '../components/Layout';
+type ScheduledTx = {
+  id: string;
+  walletAddress: string;
+  to: string;
+  value: string;
+  scheduledAt: {
+    seconds: number;
+  };
+  status: 'pending' | 'sent' | 'failed';
+};
 
 export default function SchedulePage() {
-  const [address, setAddress] = useState('');
-  const [scheduleTime, setScheduleTime] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
+  const [schedules, setSchedules] = useState<ScheduledTx[]>([]);
 
-  const handleSchedule = async () => {
-    setLoading(true);
-    setMessage('');
+  useEffect(() => {
+    const fetchSchedules = async () => {
+      const snapshot = await getDocs(collection(db, 'scheduledTx'));
+      const data = snapshot.docs.map((doc) => ({
+        ...(doc.data() as Omit<ScheduledTx, 'id'>),
+        id: doc.id,
+      }));
+      setSchedules(data);
+    };
 
-    try {
-      const res = await fetch('/api/scheduleTx', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address, scheduleTime }),
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        setMessage(`✅ ${data.message}`);
-      } else {
-        setMessage(`❌ ${data.message}`);
-      }
-    } catch (err: any) {
-      setMessage(`❌ Error: ${err.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchSchedules();
+  }, []);
 
   return (
-    <Layout>
-      <h1 className="text-3xl font-bold text-purple-500 mb-4">📅 Schedule TX</h1>
-      <p className="text-gray-400 mb-6">Jadwalkan transaksi otomatis berdasarkan waktu tertentu.</p>
+    <FullLayout title="Schedule TX">
+      <h1 className="text-3xl font-bold mb-6 text-yellow-300">📆 Schedule TX</h1>
 
-      <input
-        type="text"
-        placeholder="Wallet address"
-        value={address}
-        onChange={(e) => setAddress(e.target.value)}
-        className="mb-4 w-full p-2 bg-black border border-gray-700 rounded text-white"
-      />
-
-      <input
-        type="datetime-local"
-        value={scheduleTime}
-        onChange={(e) => setScheduleTime(e.target.value)}
-        className="mb-4 w-full p-2 bg-black border border-gray-700 rounded text-white"
-      />
-
-      <button
-        onClick={handleSchedule}
-        disabled={loading}
-        className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 disabled:opacity-50"
-      >
-        {loading ? 'Menjadwalkan...' : '🚀 Jadwalkan TX'}
-      </button>
-
-      {message && (
-        <div className="mt-4 bg-black text-green-400 p-4 rounded font-mono">
-          {message}
-        </div>
+      {schedules.length === 0 && (
+        <p className="text-gray-400">Belum ada transaksi terjadwal.</p>
       )}
-    </Layout>
+
+      <div className="space-y-4">
+        {schedules.map((tx) => (
+          <div
+            key={tx.id}
+            className={`p-4 rounded shadow border-l-4 ${
+              tx.status === 'sent'
+                ? 'border-green-400 bg-green-900'
+                : tx.status === 'failed'
+                ? 'border-red-400 bg-red-900'
+                : 'border-yellow-400 bg-yellow-900'
+            }`}
+          >
+            <p>👛 Wallet: <span className="text-cyan-300">{tx.walletAddress}</span></p>
+            <p>🎯 To: <span className="text-purple-300">{tx.to}</span></p>
+            <p>💰 Value: {tx.value} ETH</p>
+            <p>🕒 Schedule: {new Date(tx.scheduledAt.seconds * 1000).toLocaleString('id-ID')}</p>
+            <p>Status: <span className="uppercase">{tx.status}</span></p>
+          </div>
+        ))}
+      </div>
+    </FullLayout>
   );
 }
