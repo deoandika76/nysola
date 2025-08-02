@@ -12,6 +12,7 @@ const menuItems = [
   { name: 'Notifications', href: '/notifications' },
   { name: 'Settings', href: '/settings' },
   { name: 'Tx History', href: '/tx-history' },
+  { name: 'God Eye Log', href: '/godeye-log' }, // optional
 ];
 
 export default function Sidebar() {
