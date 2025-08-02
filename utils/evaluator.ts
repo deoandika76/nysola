@@ -2,30 +2,23 @@
 import { db } from '../firebase';
 import { addDoc, collection, Timestamp } from 'firebase/firestore';
 
-type EvaluationResult = {
+// ✅ Interface hasil evaluasi dari hunterActivator
+export interface EvaluationResult {
   walletAddress: string;
+  txHash: string;
   missionId: string;
-  result: 'passed' | 'failed';
-  feedback: string;
-};
+  status: 'success' | 'failed';
+}
 
-export async function evaluateHunterResult({
-  walletAddress,
-  missionId,
-  result,
-  feedback,
-}: EvaluationResult): Promise<void> {
+// ✅ Fungsi untuk menyimpan hasil evaluasi hunter ke Firestore
+export async function evaluateHunterResult(result: EvaluationResult) {
   try {
     await addDoc(collection(db, 'evaluations'), {
-      walletAddress,
-      missionId,
-      result,
-      feedback,
-      timestamp: Timestamp.now(),
+      ...result,
+      evaluatedAt: Timestamp.now(),
     });
-    console.log(`✅ Evaluasi disimpan: ${walletAddress} - ${result}`);
-  } catch (error) {
-    console.error('❌ Gagal menyimpan evaluasi:', error);
-    throw new Error('Gagal menyimpan evaluasi ke Firestore.');
+    console.log('✅ Evaluasi berhasil disimpan');
+  } catch (err) {
+    console.error('❌ Gagal menyimpan evaluasi:', err);
   }
 }
