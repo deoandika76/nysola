@@ -1,53 +1,60 @@
 // utils/executor.ts
+import { ethers } from 'ethers';
 import { db } from '../firebase';
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
-import { Wallet, JsonRpcProvider } from 'ethers';
-
-interface WalletData {
-  address: string;
-  privateKey: string;
-}
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { fetchWallets } from '../firebase';
+import { filterActiveWallets, pickTarget } from './hunterAI';
 
 const RPC_URL = process.env.NEXT_PUBLIC_SEPOLIA_RPC!;
-const provider = new JsonRpcProvider(RPC_URL);
 
-export async function runTransaction(wallet: WalletData) {
+export async function executeAutoTask() {
+  const provider = new ethers.JsonRpcProvider(RPC_URL);
+  const wallets = await fetchWallets();
+  const activeWallets = await filterActiveWallets(wallets, provider);
+  const target = pickTarget(activeWallets);
+
+  if (!target) return '❌ No target wallet found';
+
+  const wallet = new ethers.Wallet(target.privateKey, provider);
+
   try {
-    const signer = new Wallet(wallet.privateKey, provider);
-
-    const tx = {
-      to: wallet.address, // kirim ke diri sendiri (dummy tx)
-      value: BigInt(1),   // 1 wei
-    };
-
-    const result = await signer.sendTransaction(tx);
-
-    if (result && result.hash) {
-      await addDoc(collection(db, 'txHistory'), {
-        walletAddress: wallet.address,
-        txHash: result.hash,
-        status: 'success',
-        timestamp: Timestamp.now(),
-      });
-    } else {
-      await addDoc(collection(db, 'txHistory'), {
-        walletAddress: wallet.address,
-        txHash: '❌ No tx hash',
-        status: 'failed',
-        timestamp: Timestamp.now(),
-      });
-    }
-
-    return result;
-  } catch (error) {
-    await addDoc(collection(db, 'txHistory'), {
-      walletAddress: wallet.address,
-      txHash: '❌ Error saat kirim tx',
-      status: 'failed',
-      timestamp: Timestamp.now(),
+    const tx = await wallet.sendTransaction({
+      to: '0x122CAa6b1cD0F4E3b30bfB85F22ec6c777Ee4c04',
+      value: ethers.parseEther('0.00001'),
     });
 
-    console.error('Gagal kirim transaksi:', error);
-    return null;
+    const txData = {
+      walletAddress: wallet.address,
+      txHash: tx.hash,
+      status: 'success',
+      timestamp: serverTimestamp(),
+    };
+
+    // Simpan ke Firestore
+    await addDoc(collection(db, 'txHistory'), txData);
+    await addDoc(collection(db, 'notifications'), { ...txData, status: 'success' });
+    await addDoc(collection(db, 'autoTaskLogs'), {
+      ...txData,
+      gasPrice: tx.gasPrice?.toString(),
+      to: tx.to,
+    });
+
+    return `✅ TX Sent: ${tx.hash}`;
+  } catch (err: any) {
+    const failData = {
+      walletAddress: wallet.address,
+      txHash: err?.transaction?.hash || 'ERROR',
+      status: 'failed',
+      timestamp: serverTimestamp(),
+    };
+
+    await addDoc(collection(db, 'txHistory'), failData);
+    await addDoc(collection(db, 'notifications'), { ...failData, status: 'failed' });
+    await addDoc(collection(db, 'autoTaskLogs'), {
+      ...failData,
+      reason: err?.message || 'Unknown error',
+    });
+
+    return `❌ TX Failed: ${err?.message}`;
   }
 }
