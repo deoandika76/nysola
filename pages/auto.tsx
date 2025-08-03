@@ -9,7 +9,7 @@ type AutoTx = {
   walletAddress: string;
   txHash: string;
   status: 'pending' | 'success' | 'failed';
-  createdAt: {
+  timestamp?: {
     seconds: number;
   };
 };
@@ -19,7 +19,7 @@ export default function AutoTaskPage() {
 
   useEffect(() => {
     const fetchAutoTxs = async () => {
-      const snapshot = await getDocs(collection(db, 'autoTasks'));
+      const snapshot = await getDocs(collection(db, 'autoTaskLogs')); // ✅ FIXED
       const data = snapshot.docs.map((doc) => {
         const raw = doc.data() as Omit<AutoTx, 'id'>;
         return { ...raw, id: doc.id };
@@ -32,7 +32,7 @@ export default function AutoTaskPage() {
 
   return (
     <FullLayout title="Auto Task">
-      <h1 className="text-3xl font-bold mb-6 text-purple-400">🤖 Auto Task History</h1>
+      <h1 className="text-3xl font-bold mb-6 text-purple-400">🤖 Auto Task Logs</h1>
 
       {autoTxs.length === 0 && <p className="text-gray-400">Belum ada transaksi otomatis.</p>}
 
@@ -49,8 +49,21 @@ export default function AutoTaskPage() {
             }`}
           >
             <p>👛 Wallet: <span className="text-cyan-300">{tx.walletAddress}</span></p>
-            <p>🔗 TX Hash: <a href={`https://sepolia.etherscan.io/tx/${tx.txHash}`} target="_blank" className="text-blue-400 underline">{tx.txHash}</a></p>
-            <p>📅 Time: {new Date(tx.createdAt.seconds * 1000).toLocaleString('id-ID')}</p>
+            <p>🔗 TX Hash:{' '}
+              <a
+                href={`https://sepolia.etherscan.io/tx/${tx.txHash}`}
+                target="_blank"
+                className="text-blue-400 underline"
+              >
+                {tx.txHash}
+              </a>
+            </p>
+            <p>
+              📅 Time:{' '}
+              {tx.timestamp?.seconds
+                ? new Date(tx.timestamp.seconds * 1000).toLocaleString('id-ID')
+                : 'N/A'}
+            </p>
             <p>Status: <span className="uppercase">{tx.status}</span></p>
           </div>
         ))}
