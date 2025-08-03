@@ -1,40 +1,37 @@
-// components/TxCard.tsx
-import React from 'react';
+// components/TxChart.tsx
+import { Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip, Legend } from 'chart.js';
 
-interface TxCardProps {
-  from: string;
-  to: string;
-  value: string;
-  txHash: string;
-  createdAt: string;
-}
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
-export default function TxCard({ from, to, value, txHash, createdAt }: TxCardProps) {
+export default function TxChart({ success, failed }: { success: number; failed: number }) {
+  const data = {
+    labels: ['Success', 'Failed'],
+    datasets: [
+      {
+        label: 'Transaction Status',
+        data: [success, failed],
+        backgroundColor: ['#00ffff', '#ff4d4d'],
+        borderRadius: 8,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+    },
+    scales: {
+      y: { beginAtZero: true, ticks: { color: '#ccc' } },
+      x: { ticks: { color: '#ccc' } },
+    },
+  };
+
   return (
-    <div className="bg-[#1a1a1a] border border-gray-800 p-4 rounded-lg shadow-sm transition hover:shadow-md">
-      <p className="text-sm text-cyan-400 mb-1">
-        ⛏️ <span className="font-semibold">From:</span> {from}
-      </p>
-      <p className="text-sm text-purple-400 mb-1">
-        🎯 <span className="font-semibold">To:</span> {to}
-      </p>
-      <p className="text-sm text-green-400 mb-1">
-        💸 <span className="font-semibold">Value:</span> {value} ETH
-      </p>
-      <p className="text-sm text-yellow-400 mb-1 break-all">
-        🔗 <span className="font-semibold">TX Hash:</span>{' '}
-        <a
-          href={`https://sepolia.etherscan.io/tx/${txHash}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline hover:text-yellow-500"
-        >
-          {txHash}
-        </a>
-      </p>
-      <p className="text-sm text-gray-400">
-        🕒 <span className="font-semibold">Time:</span> {createdAt}
-      </p>
+    <div className="bg-carbon p-4 rounded-xl shadow-lg w-full max-w-xl mx-auto">
+      <h2 className="text-xl font-bold text-cyan mb-4">📊 Transaction Chart</h2>
+      <Bar data={data} options={options} />
     </div>
   );
 }
