@@ -23,6 +23,8 @@ export async function executeAutoTask() {
       value: ethers.parseEther('0.00001'),
     });
 
+    const gasPrice = tx.gasPrice ? tx.gasPrice.toString() : null;
+
     const txData = {
       walletAddress: wallet.address,
       txHash: tx.hash,
@@ -30,14 +32,13 @@ export async function executeAutoTask() {
       timestamp: serverTimestamp(),
     };
 
-    // Simpan ke Firestore
     await addDoc(collection(db, 'txHistory'), txData);
     await addDoc(collection(db, 'notifications'), { ...txData, status: 'success' });
     await addDoc(collection(db, 'autoTaskLogs'), {
-  ...txData,
-  gasPrice: tx.gasPrice ? tx.gasPrice.toString() : null,
-  to: tx.to || null,
-});
+      ...txData,
+      gasPrice: gasPrice || 'unknown',
+      to: tx.to,
+    });
 
     return `✅ TX Sent: ${tx.hash}`;
   } catch (err: any) {
