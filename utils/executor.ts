@@ -34,10 +34,10 @@ export async function executeAutoTask() {
     await addDoc(collection(db, 'txHistory'), txData);
     await addDoc(collection(db, 'notifications'), { ...txData, status: 'success' });
     await addDoc(collection(db, 'autoTaskLogs'), {
-      ...txData,
-      gasPrice: tx.gasPrice?.toString(),
-      to: tx.to,
-    });
+  ...txData,
+  gasPrice: tx.gasPrice ? tx.gasPrice.toString() : null,
+  to: tx.to || null,
+});
 
     return `✅ TX Sent: ${tx.hash}`;
   } catch (err: any) {
