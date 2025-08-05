@@ -48,15 +48,6 @@ export async function fetchTxHistory(): Promise<
   });
 }
 
-export function listenToNotifications(callback: (data: DocumentData[]) => void) {
-  const notifRef = collection(db, 'notifications');
-  return onSnapshot(notifRef, (snapshot) => {
-    const notifs = snapshot.docs.map((doc) => doc.data());
-    callback(notifs);
-  });
-}
-
-// ✅ Realtime listener untuk dashboard analytics
 export function listenToTxHistory(callback: (
   data: {
     id: string;
