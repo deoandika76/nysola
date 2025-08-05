@@ -1,6 +1,13 @@
 // components/TxChart.tsx
 import { Bar } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip, Legend } from 'chart.js';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Tooltip,
+  Legend,
+} from 'chart.js';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
@@ -29,7 +36,7 @@ export default function TxChart({ success, failed }: { success: number; failed: 
   };
 
   return (
-    <div className="bg-carbon p-4 rounded-xl shadow-lg w-full max-w-xl mx-auto">
+    <div className="bg-carbon p-4 rounded-xl shadow-lg w-full max-w-xl mx-auto backdrop-blur-md bg-opacity-50">
       <h2 className="text-xl font-bold text-cyan mb-4">📊 Transaction Chart</h2>
       <Bar data={data} options={options} />
     </div>
