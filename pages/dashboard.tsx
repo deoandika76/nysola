@@ -2,8 +2,6 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import DashboardCard from '../components/DashboardCard';
-import Header from '../components/Header';
-import Navbar from '../components/Navbar';
 import { listenToTxHistory } from '../firebase';
 import TxChart from '../components/TxChart';
 import BalanceChart from '../components/BalanceChart';
@@ -13,7 +11,6 @@ export default function Dashboard() {
   const [txCount, setTxCount] = useState(0);
   const [successCount, setSuccessCount] = useState(0);
   const [failedCount, setFailedCount] = useState(0);
-  const [navbarOpen, setNavbarOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = listenToTxHistory((data) => {
@@ -27,24 +24,18 @@ export default function Dashboard() {
 
   return (
     <FullLayout title="Dashboard - Nysola">
-      <Header onToggleNavbar={() => setNavbarOpen(!navbarOpen)} />
-      <Navbar isOpen={navbarOpen} onClose={() => setNavbarOpen(false)} />
+      <h1 className="text-4xl font-bold mb-10 text-cyan text-center animate-fade-up">
+        📊 Dashboard Analytics
+      </h1>
 
-      {/* Main content */}
-      <main className="text-white font-futuristic backdrop-blur-sm bg-black/50 rounded-lg p-4 md:p-8">
-        <h1 className="text-4xl font-bold mb-10 text-cyan text-center animate-fade-up">
-          📊 Dashboard Analytics
-        </h1>
+      <div className="flex flex-wrap gap-6 justify-center mb-10">
+        <DashboardCard title="Total Transactions" value={txCount.toString()} icon="📦" />
+        <DashboardCard title="Success" value={successCount.toString()} icon="✅" color="text-green-400" />
+        <DashboardCard title="Failed" value={failedCount.toString()} icon="❌" color="text-red-500" />
+      </div>
 
-        <div className="flex flex-wrap gap-6 justify-center mb-10">
-          <DashboardCard title="Total Transactions" value={txCount.toString()} icon="📦" />
-          <DashboardCard title="Success" value={successCount.toString()} icon="✅" color="text-green-400" />
-          <DashboardCard title="Failed" value={failedCount.toString()} icon="❌" color="text-red-500" />
-        </div>
-
-        <TxChart success={successCount} failed={failedCount} />
-        <BalanceChart />
-      </main>
+      <TxChart success={successCount} failed={failedCount} />
+      <BalanceChart />
     </FullLayout>
   );
 }
