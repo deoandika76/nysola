@@ -1,6 +1,6 @@
 // pages/api/autoTask.ts
 import { NextApiRequest, NextApiResponse } from 'next';
-import { ethers } from 'ethers';
+import { JsonRpcProvider, Wallet, parseEther } from 'ethers';
 import { db, fetchWallets } from '@/firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
@@ -11,16 +11,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const wallets = await fetchWallets();
-    const provider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_SEPOLIA_RPC!);
+    const provider = new JsonRpcProvider(process.env.NEXT_PUBLIC_SEPOLIA_RPC!);
     const dummyReceiver = '0x122CAa6b1cD0F4E3b30bfB85F22ec6c777Ee4c04';
     const results: any[] = [];
 
     for (const wallet of wallets) {
       try {
-        const signer = new ethers.Wallet(wallet.privateKey, provider);
+        const signer = new Wallet(wallet.privateKey, provider);
         const tx = await signer.sendTransaction({
           to: dummyReceiver,
-          value: ethers.parseEther('0.0001'),
+          value: parseEther('0.0001'),
         });
 
         await tx.wait();
@@ -33,9 +33,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           status: 'success',
         });
 
-        // ✅ Simpan ke txHistory DENGAN STRUKTUR BENAR!
+        // ✅ Simpan ke txHistory
         await addDoc(collection(db, 'txHistory'), {
-          walletAddress: wallet.address, // penting!
+          walletAddress: wallet.address,
           txHash: tx.hash,
           status: 'success',
           timestamp: Timestamp.now(),
@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         results.push({ address: wallet.address, txHash: tx.hash, status: 'success' });
 
       } catch (err: any) {
-        // ✅ Tetap simpan txHistory failed biar dashboard akurat
+        // ✅ Simpan failed tx ke history
         await addDoc(collection(db, 'txHistory'), {
           walletAddress: wallet.address,
           txHash: '',
