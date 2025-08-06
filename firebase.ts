@@ -9,6 +9,7 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 
+// 🔐 Konfigurasi dari environment variable
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
@@ -18,14 +19,17 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };
 
+// ✅ Inisialisasi Firebase App (jangan dobel)
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 export const db = getFirestore(app);
 
+// ✅ Ambil semua wallet
 export async function fetchWallets() {
   const snapshot = await getDocs(collection(db, 'wallets'));
   return snapshot.docs.map((doc) => doc.data() as { address: string; privateKey: string });
 }
 
+// ✅ Ambil semua transaksi dari txHistory
 export async function fetchTxHistory(): Promise<
   {
     id: string;
@@ -48,6 +52,16 @@ export async function fetchTxHistory(): Promise<
   });
 }
 
+// ✅ Listener realtime untuk notifikasi
+export function listenToNotifications(callback: (data: DocumentData[]) => void) {
+  const notifRef = collection(db, 'notifications');
+  return onSnapshot(notifRef, (snapshot) => {
+    const notifs = snapshot.docs.map((doc) => doc.data());
+    callback(notifs);
+  });
+}
+
+// ✅ Listener realtime untuk transaksi di dashboard
 export function listenToTxHistory(callback: (
   data: {
     id: string;
