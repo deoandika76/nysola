@@ -88,7 +88,7 @@ export default function BalanceChart() {
   return (
     <div className="bg-carbon p-5 rounded-xl shadow-xl w-full max-w-2xl mx-auto border border-white/10">
       <h2 className="text-xl font-bold text-cyan mb-2 flex items-center gap-2">
-        💰 Wallet Balance Chart (ETH)
+        💰 Wallet Balance (ETH)
       </h2>
       <p className="text-white text-sm mb-4">Total ETH: {totalEth.toFixed(6)}</p>
       <Bar data={data} options={options} />
