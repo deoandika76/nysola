@@ -1,86 +1,82 @@
+// pages/wallets.tsx
 import { useEffect, useState } from 'react';
-import { fetchWallets } from '../firebase'; // relative path OK
+import { fetchWallets, fetchTxHistory } from '../firebase';
+import FullLayout from '../components/FullLayout';
+import Header from '../components/Header';
+import Navbar from '../components/Navbar';
 import WalletList from '../components/WalletList';
-import ExportWalletsButton from '../components/ExportWalletsButton';
-
-type Wallet = {
-  id: string;
-  address: string;
-  privateKey: string;
-  createdAt: {
-    seconds: number;
-    nanoseconds: number;
-  };
-};
+import GenerateWalletButton from '../components/GenerateWalletButton';
+import { ethers } from 'ethers';
 
 export default function WalletsPage() {
-  const [wallets, setWallets] = useState<Wallet[]>([]);
-  const [visibleIndex, setVisibleIndex] = useState<number | null>(null);
+  const [wallets, setWallets] = useState<any[]>([]);
+  const [txHistory, setTxHistory] = useState<any[]>([]);
+  const [navbarOpen, setNavbarOpen] = useState(false);
+  const [totalETH, setTotalETH] = useState(0);
+  const [usdRate, setUsdRate] = useState(0);
 
   useEffect(() => {
-    const getWallets = async () => {
-      const rawData = await fetchWallets();
+    const load = async () => {
+      const [walletsData, txData] = await Promise.all([
+        fetchWallets(),
+        fetchTxHistory(),
+      ]);
+      setWallets(walletsData);
+      setTxHistory(txData);
 
-      const formatted = rawData.map((doc: any) => ({
-        id: doc.id,
-        address: doc.address,
-        privateKey: doc.privateKey,
-        createdAt: doc.createdAt || { seconds: 0, nanoseconds: 0 },
-      }));
+      const provider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_SEPOLIA_RPC!);
+      let total = 0;
+      for (const wallet of walletsData) {
+        const balance = await provider.getBalance(wallet.address);
+        total += parseFloat(ethers.formatEther(balance));
+      }
+      setTotalETH(total);
 
-      setWallets(formatted);
+      // ✅ Ambil rate ETH-USD (hardcoded sementara)
+      try {
+        const res = await fetch('https://api.coinbase.com/v2/exchange-rates?currency=ETH');
+        const json = await res.json();
+        const usd = parseFloat(json.data.rates.USD);
+        setUsdRate(usd);
+      } catch (e) {
+        setUsdRate(3000); // fallback
+      }
     };
-    getWallets();
+    load();
   }, []);
 
-  const toggleVisibility = (index: number) => {
-    setVisibleIndex(visibleIndex === index ? null : index);
-  };
-
-  const downloadWallet = (wallet: Wallet) => {
-    const fileData = JSON.stringify(wallet, null, 2);
-    const blob = new Blob([fileData], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${wallet.address}.json`;
-    link.click();
-  };
+  const totalTx = txHistory.length;
+  const totalTasks = wallets.length * 3; // Placeholder (anggap tiap wallet 3 task done)
 
   return (
-    <div className="p-6 text-white">
-      <h1 className="text-2xl font-bold mb-4 text-purple-400">🧾 Wallet List</h1>
+    <FullLayout title="Wallets - Nysola">
+      <Header onToggleNavbar={() => setNavbarOpen(!navbarOpen)} />
+      <Navbar isOpen={navbarOpen} onClose={() => setNavbarOpen(false)} />
 
-      {wallets.length === 0 && <p className="text-gray-400">Belum ada wallet.</p>}
+      <div className="mt-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-cyan font-futuristic animate-fade-up">🧾 Wallet Management</h1>
+          <GenerateWalletButton />
+        </div>
 
-      <div className="grid gap-4">
-        {wallets.map((wallet, index) => (
-          <div key={wallet.id} className="bg-[#1a1a1a] border border-gray-700 p-4 rounded">
-            <p>🔗 <strong>Address:</strong> {wallet.address}</p>
-            <p>
-              🔑 <strong>Private Key:</strong>{' '}
-              <span
-                onClick={() => toggleVisibility(index)}
-                className="cursor-pointer underline text-cyan-400"
-              >
-                {visibleIndex === index ? wallet.privateKey : '••••••••••••••••••••••'}
-              </span>
-            </p>
-            <p>
-              🕓 <strong>Dibuat:</strong>{' '}
-              {new Date(wallet.createdAt.seconds * 1000).toLocaleString('id-ID')}
-            </p>
-            <button
-              onClick={() => downloadWallet(wallet)}
-              className="mt-3 px-4 py-2 bg-purple-600 rounded hover:bg-purple-700"
-            >
-              ⬇️ Export ke JSON
-            </button>
-          </div>
-        ))}
+        <div className="grid md:grid-cols-3 sm:grid-cols-2 gap-6 mb-8">
+          <StatCard title="💰 Total ETH" value={`${totalETH.toFixed(4)} ETH`} />
+          <StatCard title="💵 Estimated USD" value={`$${(totalETH * usdRate).toFixed(2)}`} />
+          <StatCard title="🔁 Total Transactions" value={totalTx.toString()} />
+          <StatCard title="✅ Tasks Completed" value={totalTasks.toString()} />
+        </div>
+
+        <WalletList wallets={wallets} />
       </div>
+    </FullLayout>
+  );
+}
 
-      <ExportWalletsButton />
+function StatCard({ title, value }: { title: string; value: string }) {
+  return (
+    <div className="bg-[#111] rounded-xl p-4 border border-purple-700 shadow-xl">
+      <p className="text-md text-gray-400">{title}</p>
+      <h2 className="text-xl font-bold text-purple-300 mt-1">{value}</h2>
     </div>
   );
 }
