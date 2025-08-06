@@ -58,7 +58,7 @@ const BalanceChart = () => {
       },
       title: {
         display: true,
-        text: '💰 Wallet Balance (ETH)',
+        text: '💰 Wallet Balance Chart (ETH)',
         color: '#00ffff',
         font: { size: 18 },
       },
