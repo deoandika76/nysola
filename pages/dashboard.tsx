@@ -1,4 +1,4 @@
-// pages/dashboard.tsx/
+// pages/dashboard.tsx
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import DashboardCard from '../components/DashboardCard';
@@ -6,6 +6,7 @@ import Header from '../components/Header';
 import Navbar from '../components/Navbar';
 import { listenToTxHistory } from '../firebase';
 import TxChart from '../components/TxChart';
+import BalanceChart from '../components/BalanceChart';
 
 export default function Dashboard() {
   const [txCount, setTxCount] = useState(0);
@@ -44,6 +45,7 @@ export default function Dashboard() {
         </div>
 
         <TxChart success={successCount} failed={failedCount} />
+        <BalanceChart />
       </main>
     </>
   );
