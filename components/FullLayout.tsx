@@ -1,9 +1,6 @@
 // components/FullLayout.tsx
 import Head from 'next/head';
 import { ReactNode } from 'react';
-import Header from './Header';
-import Navbar from './Navbar';
-import { useState } from 'react';
 
 export default function FullLayout({
   children,
@@ -12,25 +9,20 @@ export default function FullLayout({
   children: ReactNode;
   title?: string;
 }) {
-  const [navbarOpen, setNavbarOpen] = useState(false);
-
   return (
     <>
       <Head>
         <title>{title ?? 'Nysola'}</title>
       </Head>
-
-      <Header onToggleNavbar={() => setNavbarOpen(!navbarOpen)} />
-      <Navbar isOpen={navbarOpen} onClose={() => setNavbarOpen(false)} />
-
-      {/* Background image dari public/bg-cosmic.jpg */}
       <div
-        className="min-h-screen bg-cover bg-center"
-        style={{ backgroundImage: 'url(/bg-cosmic.jpg)' }}
+        className="min-h-screen bg-black/30 text-white pt-20 px-6 md:px-16 pb-12"
+        style={{
+          backgroundImage: "url('/cosmic-bg.jpg')", // ganti sesuai filemu
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
       >
-        <div className="min-h-screen bg-black/40 backdrop-blur-md pt-24 px-6 md:px-16 pb-12">
-          {children}
-        </div>
+        {children}
       </div>
     </>
   );
