@@ -1,9 +1,8 @@
 // components/FullLayout.tsx
 import Head from 'next/head';
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import Header from './Header';
 import Navbar from './Navbar';
-import { useState } from 'react';
 
 export default function FullLayout({
   children,
@@ -23,12 +22,17 @@ export default function FullLayout({
       <Header onToggleNavbar={() => setNavbarOpen(!navbarOpen)} />
       <Navbar isOpen={navbarOpen} onClose={() => setNavbarOpen(false)} />
 
-      {/* Background image dari public/bg-cosmic.jpg */}
       <div
         className="min-h-screen bg-cover bg-center"
-        style={{ backgroundImage: 'url(/bg-cosmic.jpg)' }}
+        style={{
+          backgroundImage: "url('/bg-cosmic.jpg')", // <- pastikan ini sesuai nama file lo
+          backgroundAttachment: 'fixed',
+          backgroundRepeat: 'no-repeat',
+        }}
       >
-        <div className="min-h-screen bg-black/40 backdrop-blur-md pt-24 px-6 md:px-16 pb-12">
+        {/* Ini overlay agar content tetap kebaca */}
+        <div className="min-h-screen w-full pt-24 px-6 md:px-16 pb-12 bg-black/50">
+          {/* Kalo mau blur, tambahin backdrop-blur-sm */}
           {children}
         </div>
       </div>
