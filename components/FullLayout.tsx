@@ -16,11 +16,11 @@ export default function FullLayout({
       </Head>
 
       <div
-        className="min-h-screen pt-20 px-6 md:px-16 pb-12 text-white bg-cover bg-center bg-no-repeat"
+        className="min-h-screen w-full bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/bg-cosmic.jpg')" }}
       >
-        {/* ✨ Overlay biar tulisan tetap kebaca */}
-        <div className="backdrop-blur-sm bg-black/70 min-h-screen p-4 rounded-xl">
+        {/* Overlay transparan + blur */}
+        <div className="min-h-screen w-full backdrop-blur-sm bg-black/70 px-6 pt-20 pb-12 md:px-16">
           {children}
         </div>
       </div>
