@@ -19,14 +19,20 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };
 
-// ✅ Inisialisasi Firebase App (jangan dobel)
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 export const db = getFirestore(app);
 
-// ✅ Ambil semua wallet
+// ✅ Ambil semua wallet (dengan createdAt)
 export async function fetchWallets() {
   const snapshot = await getDocs(collection(db, 'wallets'));
-  return snapshot.docs.map((doc) => doc.data() as { address: string; privateKey: string });
+  return snapshot.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      address: data.address,
+      privateKey: data.privateKey,
+      createdAt: data.createdAt ?? { seconds: 0, nanoseconds: 0 },
+    };
+  });
 }
 
 // ✅ Ambil semua transaksi dari txHistory
