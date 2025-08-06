@@ -1,87 +1,73 @@
 // components/BalanceChart.tsx
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import { JsonRpcProvider } from 'ethers';
-import { fetchWallets } from '../firebase';
+import { JsonRpcProvider, formatEther } from 'ethers';
+import { fetchWallets } from '@/firebase';
 
-const BalanceChart = () => {
-  const [labels, setLabels] = useState<string[]>([]);
-  const [balances, setBalances] = useState<number[]>([]);
+ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip);
+
+export default function BalanceChart() {
+  const [balances, setBalances] = useState<{ address: string; balance: number }[]>([]);
+  const [totalBalance, setTotalBalance] = useState(0);
 
   useEffect(() => {
     const fetchBalances = async () => {
       const wallets = await fetchWallets();
-      const provider = new JsonRpcProvider(process.env.NEXT_PUBLIC_SEPOLIA_RPC);
+      const provider = new JsonRpcProvider(process.env.NEXT_PUBLIC_SEPOLIA_RPC!);
 
-      const newLabels: string[] = [];
-      const newBalances: number[] = [];
+      const results = await Promise.all(wallets.map(async (w) => {
+        const balanceBN = await provider.getBalance(w.address);
+        return {
+          address: w.address,
+          balance: parseFloat(formatEther(balanceBN)),
+        };
+      }));
 
-      for (const wallet of wallets) {
-        const address = wallet.address;
-        const balance = await provider.getBalance(address);
-        const ethBalance = Number(balance.toString()) / 1e18;
-
-        newLabels.push(address.slice(0, 6) + '...' + address.slice(-4));
-        newBalances.push(ethBalance);
-      }
-
-      setLabels(newLabels);
-      setBalances(newBalances);
+      setBalances(results);
+      setTotalBalance(results.reduce((acc, curr) => acc + curr.balance, 0));
     };
 
     fetchBalances();
   }, []);
 
   const chartData = {
-    labels,
+    labels: balances.map((w) => `${w.address.slice(0, 6)}...${w.address.slice(-4)}`),
     datasets: [
       {
         label: 'ETH Balance',
-        data: balances,
-        backgroundColor: 'rgba(0, 255, 255, 0.8)', // transparan neon
+        data: balances.map((w) => w.balance),
+        backgroundColor: '#00FFFF',
       },
     ],
   };
 
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: {
-        display: false,
-      },
-      tooltip: {
-        callbacks: {
-          label: (context: any) => {
-            return `ETH Balance: ${context.parsed.y.toFixed(4)}`;
+  return (
+    <div className="bg-[#0f0f0f] p-6 rounded-lg shadow-md border border-gray-700 w-full max-w-3xl mx-auto mt-12">
+      <h2 className="text-xl font-bold text-amber-400 mb-2">💰 Wallet Balance Chart (ETH)</h2>
+      <p className="text-white mb-4">Total Balance: <span className="text-cyan-400 font-semibold">{totalBalance.toFixed(4)} ETH</span></p>
+      <Bar data={chartData} options={{
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: (context) => `ETH Balance: ${context.parsed.y}`,
+            },
           },
         },
-      },
-      title: {
-        display: true,
-        text: '💰 Wallet Balance Chart (ETH)',
-        color: '#00ffff',
-        font: { size: 18 },
-      },
-    },
-    scales: {
-      x: {
-        ticks: {
-          color: '#fff',
+        responsive: true,
+        scales: {
+          y: {
+            ticks: {
+              color: '#fff',
+            },
+          },
+          x: {
+            ticks: {
+              color: '#fff',
+            },
+          },
         },
-      },
-      y: {
-        ticks: {
-          color: '#fff',
-        },
-      },
-    },
-  };
-
-  return (
-    <div className="bg-[#111] p-4 rounded-lg w-full md:w-[600px] mx-auto border border-white/20">
-      <Bar data={chartData} options={options} />
+      }} />
     </div>
   );
-};
-
-export default BalanceChart;
+}
