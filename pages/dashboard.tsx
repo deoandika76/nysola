@@ -7,6 +7,7 @@ import Navbar from '../components/Navbar';
 import { listenToTxHistory } from '../firebase';
 import TxChart from '../components/TxChart';
 import BalanceChart from '../components/BalanceChart';
+import FullLayout from '../components/FullLayout';
 
 export default function Dashboard() {
   const [txCount, setTxCount] = useState(0);
@@ -21,19 +22,16 @@ export default function Dashboard() {
       setFailedCount(data.filter((d) => d.status === 'failed').length);
     });
 
-    return () => unsubscribe(); // Clean up listener
+    return () => unsubscribe();
   }, []);
 
   return (
-    <>
-      <Head>
-        <title>Dashboard - Nysola</title>
-      </Head>
-
+    <FullLayout title="Dashboard - Nysola">
       <Header onToggleNavbar={() => setNavbarOpen(!navbarOpen)} />
       <Navbar isOpen={navbarOpen} onClose={() => setNavbarOpen(false)} />
 
-      <main className="pt-20 px-6 md:px-16 pb-12 bg-black min-h-screen text-white font-futuristic">
+      {/* Main content */}
+      <main className="text-white font-futuristic backdrop-blur-sm bg-black/50 rounded-lg p-4 md:p-8">
         <h1 className="text-4xl font-bold mb-10 text-cyan text-center animate-fade-up">
           📊 Dashboard Analytics
         </h1>
@@ -47,6 +45,6 @@ export default function Dashboard() {
         <TxChart success={successCount} failed={failedCount} />
         <BalanceChart />
       </main>
-    </>
+    </FullLayout>
   );
 }
