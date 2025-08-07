@@ -4,6 +4,15 @@ import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { fetchWallets } from '../firebase';
 import { filterActiveWallets, pickTarget } from './hunterAI';
+import { evaluateHunterResult } from './evaluator';
+
+// Setelah TX sukses
+await evaluateHunterResult({
+  walletAddress: wallet.address,
+  txHash: tx.hash,
+  missionId: 'TX-GOD-EYE',
+  status: 'success',
+});
 
 const RPC_URL = process.env.NEXT_PUBLIC_SEPOLIA_RPC!;
 
