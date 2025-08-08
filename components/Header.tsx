@@ -4,14 +4,14 @@ import NotificationDropdown from './NotificationDropdown';
 
 export default function Header({ onToggleNavbar }: { onToggleNavbar: () => void }) {
   return (
-    <header className="fixed top-0 left-0 w-full bg-carbon text-white shadow-lg z-50 flex items-center justify-between px-6 py-4">
+    <header className="fixed top-0 left-0 w-full bg-black/30 backdrop-blur-md text-white shadow-lg z-50 flex items-center justify-between px-6 py-4 border-b border-white/10">
       <h1 className="text-xl font-bold text-orchid font-futuristic">NYSOLA AI OPS</h1>
 
       <div className="flex items-center space-x-4">
-        {/* ✅ Hanya render NotificationDropdown, tombol lonceng sudah di dalamnya */}
+        {/* ✅ Notifikasi (lonceng) */}
         <NotificationDropdown />
 
-        {/* ☰ Navbar Toggle */}
+        {/* ☰ Toggle Navbar */}
         <button
           onClick={onToggleNavbar}
           className="text-white hover:text-cyan transition"
