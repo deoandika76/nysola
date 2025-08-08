@@ -30,9 +30,8 @@ export default function Navbar({ isOpen, onClose }: NavbarProps) {
   ];
 
   return (
-    <div className="fixed top-20 left-0 w-full max-w-xs bg-carbon border-r border-gray-800 shadow-lg z-40 h-full p-6 text-white overflow-y-auto">
+    <div className="fixed top-20 left-0 w-full max-w-xs bg-black/30 backdrop-blur-md border-r border-white/10 shadow-xl z-40 h-full p-6 text-white overflow-y-auto rounded-tr-xl rounded-br-xl">
       <h2 className="text-xl font-bold mb-4 text-orchid">🔭 Navigation</h2>
-      
       <ul className="space-y-3">
         {menuItems.map((item) => (
           <li key={item.name}>
@@ -43,18 +42,13 @@ export default function Navbar({ isOpen, onClose }: NavbarProps) {
         ))}
       </ul>
 
-      <div className="mt-6 space-y-3">
-        {/* 🔁 Tombol Kembali ke Dashboard */}
-        <Link href="/dashboard">
-          <button
-            onClick={onClose}
-            className="w-full bg-cyan-600 hover:bg-cyan-800 text-white font-bold py-2 px-4 rounded transition"
-          >
+      <div className="mt-6">
+        <Link href="/dashboard" onClick={onClose}>
+          <button className="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mb-4">
             ⬅️ Kembali ke Dashboard
           </button>
         </Link>
 
-        {/* 👁️ Tombol GOD EYE */}
         <button
           onClick={() => setModalOpen(true)}
           className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-pink-600 hover:to-purple-600 text-white font-bold py-2 px-4 rounded"
