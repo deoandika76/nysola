@@ -30,7 +30,7 @@ export default function Navbar({ isOpen, onClose }: NavbarProps) {
   ];
 
   return (
-    <div className="fixed top-20 left-0 w-full max-w-xs bg-black/30 backdrop-blur-md border-r border-white/10 shadow-xl z-40 h-full p-6 text-white overflow-y-auto rounded-tr-xl rounded-br-xl">
+    <div className="fixed top-20 left-0 w-full max-w-xs bg-black/50 backdrop-blur-md border-r border-gray-800 shadow-lg z-40 h-full p-6 text-white overflow-y-auto">
       <h2 className="text-xl font-bold mb-4 text-orchid">🔭 Navigation</h2>
       <ul className="space-y-3">
         {menuItems.map((item) => (
@@ -42,19 +42,14 @@ export default function Navbar({ isOpen, onClose }: NavbarProps) {
         ))}
       </ul>
 
-      <div className="mt-6">
-        <Link href="/dashboard" onClick={onClose}>
-          <button className="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mb-4">
-            ⬅️ Kembali ke Dashboard
-          </button>
-        </Link>
-
-        <button
+      {/* ✅ Logo PNG untuk aktifkan GOD EYE */}
+      <div className="mt-8 flex justify-center">
+        <img
+          src="/god-eye-icon.png"
+          alt="Activate GOD EYE"
+          className="w-10 h-10 cursor-pointer hover:scale-110 transition-transform"
           onClick={() => setModalOpen(true)}
-          className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-pink-600 hover:to-purple-600 text-white font-bold py-2 px-4 rounded"
-        >
-          👁️‍🔥 Activate GOD EYE
-        </button>
+        />
       </div>
 
       <GodEyeModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
