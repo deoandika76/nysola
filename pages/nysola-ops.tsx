@@ -1,4 +1,3 @@
-// pages/nysola-ops.tsx
 import { useEffect, useState } from 'react';
 import FullLayout from '@/components/FullLayout';
 
@@ -112,6 +111,19 @@ const data: Step[] = [
       'Memory inject + feedback + score history',
     ],
   },
+  {
+    phase: 'PHASE 10: SYSTEM INTEGRATION & SCALE-UP',
+    steps: [
+      'Webhook integrasi (tx trigger → Discord/Telegram)',
+      'GitHub Actions → Auto deploy tools hunter',
+      'Zapier / Make automation → third-party tasks',
+      'Vercel Analytics, Monitor & Logging',
+      'External RPC provider switcher',
+      'Sentry / Posthog / LogSnag monitoring',
+      'NFT / Reward webhook listener',
+      'Custom Admin Panel Integration',
+    ],
+  },
 ];
 
 export default function NysolaOps() {
@@ -135,7 +147,10 @@ export default function NysolaOps() {
       <h1 className="text-3xl font-bold text-cyan text-center mb-10">🧭 Nysola Ops</h1>
       <div className="space-y-10">
         {data.map((phase, phaseIdx) => (
-          <div key={phase.phase} className="bg-black/40 backdrop-blur-md p-6 rounded-xl border border-violet-500 shadow-lg">
+          <div
+            key={phase.phase}
+            className="bg-black/40 backdrop-blur-md p-6 rounded-xl border border-violet-500 shadow-lg"
+          >
             <h2 className="text-xl font-bold text-orchid mb-4">{phase.phase}</h2>
             <ul className="space-y-2">
               {phase.steps.map((step, stepIdx) => (
