@@ -1,78 +1,46 @@
 // pages/dashboard.tsx
-'use client';
+import { useEffect, useState } from 'react';
+import FullLayout from '../components/FullLayout';
+import DashboardCard from '../components/DashboardCard';
+import { listenToTxHistory } from '../firebase';
+import TxChart from '../components/TxChart';
+import BalanceChart from '../components/BalanceChart';
 
-import { useEffect, useMemo, useState } from 'react';
-import FullLayout from '@/components/FullLayout';
-import TxChart from '@/components/TxChart';
-import BalanceChart from '@/components/BalanceChart';
-import DashboardCard from '@/components/DashboardCard';
-import { listenToTxHistory } from '@/firebase';
-
-type TxRow = {
-  status: 'success' | 'failed';
-  createdAt?: { seconds: number };
-};
+type Tx = { status: 'success' | 'failed'; timestamp: { seconds: number } };
 
 export default function Dashboard() {
-  const [rows, setRows] = useState<TxRow[]>([]);
+  const [txs, setTxs] = useState<Tx[]>([]);
+  const successCount = txs.filter((t) => t.status === 'success').length;
+  const failedCount = txs.filter((t) => t.status === 'failed').length;
 
   useEffect(() => {
     const unsub = listenToTxHistory((arr: any[]) => {
-      // map tipis (hindari bloat)
-      setRows(
-        arr.map((d) => ({
+      // pastikan minimal field status & timestamp
+      setTxs(
+        arr.map((d: any) => ({
           status: d.status,
-          createdAt: d.createdAt,
+          timestamp: d.timestamp ?? { seconds: Math.floor(Date.now() / 1000) },
         }))
       );
     });
     return () => unsub();
   }, []);
 
-  const { total, success, failed, rate, labels, successSeries, failedSeries } = useMemo(() => {
-    const total = rows.length;
-    const success = rows.filter(r => r.status === 'success').length;
-    const failed = rows.filter(r => r.status === 'failed').length;
-    const rate = total ? (success / total) * 100 : 0;
-
-    // group sederhana by day (full data), label format DD/MM
-    const map = new Map<string, { s: number; f: number }>();
-    for (const r of rows) {
-      const t = (r.createdAt?.seconds ?? 0) * 1000;
-      const d = new Date(t);
-      const key = isNaN(d.getTime()) ? 'Unknown' :
-        `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
-      const prev = map.get(key) || { s: 0, f: 0 };
-      if (r.status === 'success') prev.s += 1; else prev.f += 1;
-      map.set(key, prev);
-    }
-    const labels = Array.from(map.keys());
-    const successSeries = Array.from(map.values()).map(v => v.s);
-    const failedSeries = Array.from(map.values()).map(v => v.f);
-
-    return { total, success, failed, rate, labels, successSeries, failedSeries };
-  }, [rows]);
-
   return (
-    <FullLayout title="Dashboard Analytics">
-      <h1 className="text-4xl font-bold mb-3 text-cyan">📊 Dashboard Analytics</h1>
-      <p className="text-gray-300 mb-8">
-        Ringkasan performa transaksi & saldo wallet (data penuh).
-      </p>
+    <FullLayout title="Dashboard - Nysola">
+      <h1 className="text-4xl font-bold mb-8 text-cyan text-center">📊 Dashboard Analytics</h1>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-        <DashboardCard title="Total Transactions" value={String(total)} icon="📦" />
-        <DashboardCard title="Success" value={String(success)} icon="✅" color="text-green-400" />
-        <DashboardCard title="Failed" value={String(failed)} icon="❌" color="text-red-400" />
-        <DashboardCard title="Success Rate" value={`${rate.toFixed(1)}%`} icon="⚡" color="text-yellow-300" />
+      <div className="flex flex-wrap gap-6 justify-center mb-10">
+        <DashboardCard title="Total Transactions" value={String(txs.length)} icon="📦" />
+        <DashboardCard title="Success" value={String(successCount)} icon="✅" color="text-green-400" />
+        <DashboardCard title="Failed" value={String(failedCount)} icon="❌" color="text-red-500" />
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TxChart labels={labels} successSeries={successSeries} failedSeries={failedSeries} />
-        <BalanceChart />
+      <div className="mb-10">
+        <TxChart txs={txs} />
       </div>
+
+      <BalanceChart />
     </FullLayout>
   );
 }
