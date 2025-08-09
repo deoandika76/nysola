@@ -2,23 +2,33 @@
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
-  CategoryScale, LinearScale, BarElement, Tooltip, Legend,
-  type ChartOptions, type TooltipItem,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Tooltip,
+  Legend,
+  ChartOptions,
 } from 'chart.js';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
-export default function TxChart({ success, failed }: { success: number; failed: number }) {
+export default function TxChart({
+  success,
+  failed,
+  compact,
+}: {
+  success: number;
+  failed: number;
+  compact?: boolean;
+}) {
   const data = {
     labels: ['Success', 'Failed'],
     datasets: [
       {
-        label: 'Transactions',
+        label: 'Transaction Status',
         data: [success, failed],
-        backgroundColor: ['#38E8E1', '#ff4d4d'],
-        borderRadius: 10,
-        barThickness: 44,
-        maxBarThickness: 46,
+        backgroundColor: ['#00FFFF', '#FF4D4D'],
+        borderRadius: 8,
       },
     ],
   };
@@ -30,28 +40,28 @@ export default function TxChart({ success, failed }: { success: number; failed: 
       legend: { display: false },
       tooltip: {
         callbacks: {
-          label: (ctx: TooltipItem<'bar'>) => `${ctx.label}: ${ctx.parsed.y}`,
+          label: (ctx) => `${ctx.label}: ${ctx.parsed.y}`,
         },
       },
     },
     scales: {
-      x: {
-        ticks: {
-          color: '#b8eaff',
-          font: { weight: 600 }, // <= number, not string
-        },
-        grid: { display: false },
-      },
       y: {
         beginAtZero: true,
-        ticks: { color: '#b8eaff' },
-        grid: { color: 'rgba(255,255,255,0.06)' },
+        ticks: { color: '#cbd5e1' }, // slategrey
+        grid: { color: 'rgba(148,163,184,0.15)' },
+      },
+      x: {
+        ticks: { color: '#cbd5e1' },
+        grid: { display: false },
       },
     },
   };
 
   return (
-    <div className="bg-white/5 backdrop-blur-xl border border-violet-700/40 rounded-2xl p-5 shadow-[0_0_60px_-20px_rgba(218,68,255,0.35)]">
+    <div
+      className={`bg-white/5 backdrop-blur-xl border border-violet-700/40 rounded-2xl shadow-[0_0_60px_-20px_rgba(218,68,255,0.35)]
+      ${compact ? 'p-4' : 'p-5'}`}
+    >
       <h2 className="text-xl font-bold text-cyan mb-4">📊 Transaction Chart</h2>
       <Bar data={data} options={options} />
     </div>
