@@ -1,6 +1,9 @@
 // components/BalanceChart.tsx
 import { useEffect, useState } from 'react';
-import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip } from 'chart.js';
+import {
+  Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip,
+  type ChartOptions, type TooltipItem,
+} from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { JsonRpcProvider, formatEther } from 'ethers';
 import { fetchWallets } from '@/firebase';
@@ -17,16 +20,14 @@ export default function BalanceChart() {
       try {
         const wallets = await fetchWallets();
         const provider = new JsonRpcProvider(process.env.NEXT_PUBLIC_SEPOLIA_RPC!);
-
         const results = await Promise.all(
           wallets.map(async (w) => {
             const balanceBN = await provider.getBalance(w.address);
             return { address: w.address, balance: parseFloat(formatEther(balanceBN)) };
-          }),
+          })
         );
-
         setBalances(results);
-        setTotalBalance(results.reduce((acc, curr) => acc + curr.balance, 0));
+        setTotalBalance(results.reduce((a, b) => a + b.balance, 0));
       } finally {
         setLoading(false);
       }
@@ -47,15 +48,16 @@ export default function BalanceChart() {
     ],
   };
 
-  const options = {
+  const options: ChartOptions<'bar'> = {
     responsive: true,
     animation: { duration: 650, easing: 'easeOutCubic' },
     plugins: {
       legend: { display: false },
       tooltip: {
         callbacks: {
-          title: (items: any[]) => `Wallet ${items[0].label}`,
-          label: (ctx: any) => `${ctx.dataset.label}: ${Number(ctx.parsed.y).toFixed(6)} ETH`,
+          title: (items) => `Wallet ${items[0].label}`,
+          label: (ctx: TooltipItem<'bar'>) =>
+            `${ctx.dataset.label as string}: ${Number(ctx.parsed.y).toFixed(6)} ETH`,
         },
       },
     },
@@ -69,7 +71,7 @@ export default function BalanceChart() {
         grid: { color: 'rgba(255,255,255,0.06)' },
       },
     },
-  } as const;
+  };
 
   return (
     <div className="bg-white/5 backdrop-blur-xl border border-violet-700/40 rounded-2xl p-5 shadow-[0_0_60px_-20px_rgba(218,68,255,0.35)]">
@@ -77,11 +79,7 @@ export default function BalanceChart() {
       <p className="text-white/90 mb-4">
         Total Balance: <span className="text-cyan-300 font-semibold">{totalBalance.toFixed(6)} ETH</span>
       </p>
-      {loading ? (
-        <p className="text-gray-300">Loading balances…</p>
-      ) : (
-        <Bar data={chartData} options={options} />
-      )}
+      {loading ? <p className="text-gray-300">Loading balances…</p> : <Bar data={chartData} options={options} />}
     </div>
   );
 }
