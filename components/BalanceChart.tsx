@@ -1,4 +1,4 @@
-// components/BalanceChart.tsx
+// components/BalanceChart.tsx /
 import { useEffect, useState } from 'react';
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, ChartOptions } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
