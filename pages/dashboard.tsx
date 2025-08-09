@@ -1,149 +1,77 @@
 // pages/dashboard.tsx
+'use client';
+
 import { useEffect, useMemo, useState } from 'react';
-import DashboardCard from '@/components/DashboardCard';
+import FullLayout from '@/components/FullLayout';
 import TxChart from '@/components/TxChart';
 import BalanceChart from '@/components/BalanceChart';
-import FullLayout from '@/components/FullLayout';
+import DashboardCard from '@/components/DashboardCard';
 import { listenToTxHistory } from '@/firebase';
 
-type Tx = {
+type TxRow = {
   status: 'success' | 'failed';
-  timestamp?: { seconds: number };
+  createdAt?: { seconds: number };
 };
 
-const WINDOW_MIN = 60; // bandingkan 60 menit terakhir vs 60 menit sebelumnya
-
 export default function Dashboard() {
-  const [txs, setTxs] = useState<Tx[]>([]);
-  const [compact, setCompact] = useState(false);
+  const [rows, setRows] = useState<TxRow[]>([]);
 
   useEffect(() => {
-    const un = listenToTxHistory((raw) => {
-      // @ts-ignore: bentuk dari firebase.ts
-      setTxs(raw as Tx[]);
+    const unsub = listenToTxHistory((arr: any[]) => {
+      // map tipis (hindari bloat)
+      setRows(
+        arr.map((d) => ({
+          status: d.status,
+          createdAt: d.createdAt,
+        }))
+      );
     });
-    return () => un();
+    return () => unsub();
   }, []);
 
-  const now = Date.now();
-  const curStart = now - WINDOW_MIN * 60 * 1000;
-  const prevStart = now - 2 * WINDOW_MIN * 60 * 1000;
+  const { total, success, failed, rate, labels, successSeries, failedSeries } = useMemo(() => {
+    const total = rows.length;
+    const success = rows.filter(r => r.status === 'success').length;
+    const failed = rows.filter(r => r.status === 'failed').length;
+    const rate = total ? (success / total) * 100 : 0;
 
-  const {
-    totalNow,
-    succNow,
-    failNow,
-    totalPrev,
-    succPrev,
-    failPrev,
-    successRate,
-    trendTotal,
-    trendSucc,
-    trendFail,
-  } = useMemo(() => {
-    const inRange = (t?: number, start?: number, end?: number) =>
-      t && start && end ? t >= start && t < end : false;
+    // group sederhana by day (full data), label format DD/MM
+    const map = new Map<string, { s: number; f: number }>();
+    for (const r of rows) {
+      const t = (r.createdAt?.seconds ?? 0) * 1000;
+      const d = new Date(t);
+      const key = isNaN(d.getTime()) ? 'Unknown' :
+        `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const prev = map.get(key) || { s: 0, f: 0 };
+      if (r.status === 'success') prev.s += 1; else prev.f += 1;
+      map.set(key, prev);
+    }
+    const labels = Array.from(map.keys());
+    const successSeries = Array.from(map.values()).map(v => v.s);
+    const failedSeries = Array.from(map.values()).map(v => v.f);
 
-    const cur = txs.filter((t) =>
-      inRange((t.timestamp?.seconds || 0) * 1000, curStart, now)
-    );
-    const prev = txs.filter((t) =>
-      inRange((t.timestamp?.seconds || 0) * 1000, prevStart, curStart)
-    );
-
-    const count = (arr: Tx[], s?: 'success' | 'failed') =>
-      typeof s === 'undefined' ? arr.length : arr.filter((x) => x.status === s).length;
-
-    const totalNow = count(cur);
-    const succNow = count(cur, 'success');
-    const failNow = count(cur, 'failed');
-
-    const totalPrev = count(prev);
-    const succPrev = count(prev, 'success');
-    const failPrev = count(prev, 'failed');
-
-    const pct = (nowVal: number, prevVal: number) => {
-      if (prevVal === 0 && nowVal === 0) return 0;
-      if (prevVal === 0) return 100; // lonjakan dari 0
-      return ((nowVal - prevVal) / prevVal) * 100;
-    };
-
-    const successRate = totalNow ? (succNow / totalNow) * 100 : 0;
-
-    return {
-      totalNow,
-      succNow,
-      failNow,
-      totalPrev,
-      succPrev,
-      failPrev,
-      successRate,
-      trendTotal: pct(totalNow, totalPrev),
-      trendSucc: pct(succNow, succPrev),
-      trendFail: pct(failNow, failPrev),
-    };
-  }, [txs, curStart, now]);
+    return { total, success, failed, rate, labels, successSeries, failedSeries };
+  }, [rows]);
 
   return (
-    <FullLayout title="Dashboard - Nysola">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-4xl font-bold text-cyan">📊 Dashboard Analytics</h1>
-
-        <button
-          onClick={() => setCompact((s) => !s)}
-          className="rounded-lg border border-violet-600/50 bg-white/5 px-3 py-1.5 text-sm text-white hover:bg-white/10 transition"
-        >
-          {compact ? 'Expanded' : 'Compact'} view
-        </button>
-      </div>
-
-      <p className="text-gray-300/80 mb-8">
-        Ringkasan performa transaksi & saldo wallet. Perbandingan {WINDOW_MIN} menit terakhir
-        vs {WINDOW_MIN} menit sebelumnya.
+    <FullLayout title="Dashboard Analytics">
+      <h1 className="text-4xl font-bold mb-3 text-cyan">📊 Dashboard Analytics</h1>
+      <p className="text-gray-300 mb-8">
+        Ringkasan performa transaksi & saldo wallet (data penuh).
       </p>
 
-      <div className="flex flex-wrap gap-6 justify-center mb-10">
-        <DashboardCard
-          title="Total Transactions"
-          value={String(totalNow)}
-          icon="📦"
-          subtitle={`${totalPrev} sebelumnya`}
-          trendPct={trendTotal}
-          trendLabel=""
-          compact={compact}
-        />
-        <DashboardCard
-          title="Success"
-          value={String(succNow)}
-          icon="✅"
-          color="text-green-400"
-          subtitle={`${succPrev} sebelumnya`}
-          trendPct={trendSucc}
-          compact={compact}
-        />
-        <DashboardCard
-          title="Failed"
-          value={String(failNow)}
-          icon="❌"
-          color="text-red-500"
-          subtitle={`${failPrev} sebelumnya`}
-          trendPct={trendFail}
-          compact={compact}
-        />
-        {!compact && (
-          <DashboardCard
-            title="Success Rate"
-            value={`${successRate.toFixed(1)}%`}
-            icon="⚡"
-            color="text-cyan"
-            subtitle="(window saat ini)"
-          />
-        )}
+      {/* KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        <DashboardCard title="Total Transactions" value={String(total)} icon="📦" />
+        <DashboardCard title="Success" value={String(success)} icon="✅" color="text-green-400" />
+        <DashboardCard title="Failed" value={String(failed)} icon="❌" color="text-red-400" />
+        <DashboardCard title="Success Rate" value={`${rate.toFixed(1)}%`} icon="⚡" color="text-yellow-300" />
       </div>
 
-      <div className="grid grid-cols-1 gap-8">
-        <TxChart success={succNow} failed={failNow} compact={compact} />
-        <BalanceChart refreshMs={60000} compact={compact} />
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TxChart labels={labels} successSeries={successSeries} failedSeries={failedSeries} />
+        <BalanceChart />
       </div>
     </FullLayout>
   );
