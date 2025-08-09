@@ -8,6 +8,11 @@ import { evaluateHunterResult } from './evaluator';
 
 const RPC_URL = process.env.NEXT_PUBLIC_SEPOLIA_RPC!;
 
+// cache sederhana untuk mencegah spam notifikasi duplikat pada proses yang sama
+const notifCache: Set<string> =
+  (globalThis as any).__nysolaNotifCache || new Set<string>();
+(globalThis as any).__nysolaNotifCache = notifCache;
+
 export async function executeAutoTask() {
   const provider = new ethers.JsonRpcProvider(RPC_URL);
   const wallets = await fetchWallets();
@@ -24,22 +29,32 @@ export async function executeAutoTask() {
       value: ethers.parseEther('0.00001'),
     });
 
-    const gasPrice = tx.gasPrice ? tx.gasPrice.toString() : null;
-
     const txData = {
       walletAddress: wallet.address,
       txHash: tx.hash,
-      status: 'success',
+      status: 'success' as const,
       timestamp: serverTimestamp(),
     };
 
-    // ✅ Simpan log ke Firestore
+    // ✅ Simpan log minimalis untuk hemat kuota
     await addDoc(collection(db, 'txHistory'), txData);
-    await addDoc(collection(db, 'notifications'), { ...txData, status: 'success' });
+
+    // ✅ Notif: dedup agar tidak double write
+    const key = `${wallet.address}:${tx.hash}:success`;
+    if (!notifCache.has(key)) {
+      await addDoc(collection(db, 'notifications'), {
+        message: `TX sent ${tx.hash.slice(0, 10)}…`,
+        type: 'success',
+        timestamp: serverTimestamp(),
+      });
+      notifCache.add(key);
+    }
+
+    // ✅ AutoTaskLogs minimal
     await addDoc(collection(db, 'autoTaskLogs'), {
-      ...txData,
-      gasPrice: gasPrice || 'unknown',
-      to: tx.to,
+      w: wallet.address,
+      h: tx.hash,
+      t: serverTimestamp(),
     });
 
     // ✅ Evaluasi hasil hunter
@@ -52,20 +67,35 @@ export async function executeAutoTask() {
 
     return `✅ TX Sent: ${tx.hash}`;
   } catch (err: any) {
+    const message = err?.message || 'Unknown error';
+    const txHash = err?.transaction?.hash || 'ERROR';
+
     const failData = {
       walletAddress: wallet.address,
-      txHash: err?.transaction?.hash || 'ERROR',
-      status: 'failed',
+      txHash,
+      status: 'failed' as const,
       timestamp: serverTimestamp(),
     };
 
     await addDoc(collection(db, 'txHistory'), failData);
-    await addDoc(collection(db, 'notifications'), { ...failData, status: 'failed' });
+
+    const key = `${wallet.address}:${txHash}:failed`;
+    if (!notifCache.has(key)) {
+      await addDoc(collection(db, 'notifications'), {
+        message: `TX failed (${message.slice(0, 120)})`,
+        type: 'error',
+        timestamp: serverTimestamp(),
+      });
+      notifCache.add(key);
+    }
+
     await addDoc(collection(db, 'autoTaskLogs'), {
-      ...failData,
-      reason: err?.message || 'Unknown error',
+      w: wallet.address,
+      h: txHash,
+      err: message.slice(0, 200),
+      t: serverTimestamp(),
     });
 
-    return `❌ TX Failed: ${err?.message}`;
+    return `❌ TX Failed: ${message}`;
   }
 }
