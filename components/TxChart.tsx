@@ -3,6 +3,7 @@ import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale, LinearScale, BarElement, Tooltip, Legend,
+  type ChartOptions, type TooltipItem,
 } from 'chart.js';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
@@ -22,20 +23,23 @@ export default function TxChart({ success, failed }: { success: number; failed: 
     ],
   };
 
-  const options = {
+  const options: ChartOptions<'bar'> = {
     responsive: true,
     animation: { duration: 600, easing: 'easeOutQuart' },
     plugins: {
       legend: { display: false },
       tooltip: {
         callbacks: {
-          label: (ctx: any) => `${ctx.label}: ${ctx.parsed.y}`,
+          label: (ctx: TooltipItem<'bar'>) => `${ctx.label}: ${ctx.parsed.y}`,
         },
       },
     },
     scales: {
       x: {
-        ticks: { color: '#b8eaff', font: { weight: '600' } },
+        ticks: {
+          color: '#b8eaff',
+          font: { weight: 600 }, // <= number, not string
+        },
         grid: { display: false },
       },
       y: {
@@ -44,7 +48,7 @@ export default function TxChart({ success, failed }: { success: number; failed: 
         grid: { color: 'rgba(255,255,255,0.06)' },
       },
     },
-  } as const;
+  };
 
   return (
     <div className="bg-white/5 backdrop-blur-xl border border-violet-700/40 rounded-2xl p-5 shadow-[0_0_60px_-20px_rgba(218,68,255,0.35)]">
