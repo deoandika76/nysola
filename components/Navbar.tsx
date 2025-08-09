@@ -15,6 +15,7 @@ export default function Navbar({ isOpen, onClose }: NavbarProps) {
 
   const menuItems = [
     { name: 'Wallets', href: '/wallets' },
+    { name: 'Faucet Hunter', href: '/faucet-hunter' },
     { name: 'Tasks', href: '/tasks' },
     { name: 'Auto Task', href: '/auto' },
     { name: 'Schedule TX', href: '/schedule' },
