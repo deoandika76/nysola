@@ -1,69 +1,83 @@
 // components/TxChart.tsx
-import { Bar } from 'react-chartjs-2';
+'use client';
+
+import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  BarElement,
+  PointElement,
+  LineElement,
   Tooltip,
   Legend,
-  ChartOptions,
+  Filler,
 } from 'chart.js';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend, Filler);
 
-export default function TxChart({
-  success,
-  failed,
-  compact,
-}: {
-  success: number;
-  failed: number;
-  compact?: boolean;
-}) {
+type Props = {
+  labels: string[];
+  successSeries: number[];
+  failedSeries: number[];
+};
+
+export default function TxChart({ labels, successSeries, failedSeries }: Props) {
   const data = {
-    labels: ['Success', 'Failed'],
+    labels,
     datasets: [
       {
-        label: 'Transaction Status',
-        data: [success, failed],
-        backgroundColor: ['#00FFFF', '#FF4D4D'],
-        borderRadius: 8,
+        label: 'Success',
+        data: successSeries,
+        borderColor: '#18ffe4',
+        backgroundColor: 'rgba(24,255,228,0.18)',
+        pointRadius: 0,
+        tension: 0.35,
+        fill: true,
+      },
+      {
+        label: 'Failed',
+        data: failedSeries,
+        borderColor: '#ff5577',
+        backgroundColor: 'rgba(255,85,119,0.12)',
+        pointRadius: 0,
+        tension: 0.35,
+        fill: true,
       },
     ],
   };
 
-  const options: ChartOptions<'bar'> = {
+  const options: any = {
     responsive: true,
-    animation: { duration: 600, easing: 'easeOutQuart' },
+    maintainAspectRatio: false,
     plugins: {
-      legend: { display: false },
+      legend: { display: true, labels: { color: '#d7d7d7' } },
       tooltip: {
+        intersect: false,
+        mode: 'index',
         callbacks: {
-          label: (ctx) => `${ctx.label}: ${ctx.parsed.y}`,
+          label: (ctx: any) => `${ctx.dataset.label}: ${ctx.parsed.y}`,
         },
       },
     },
     scales: {
+      x: {
+        ticks: { color: '#b8eaff' },
+        grid: { display: false },
+      },
       y: {
         beginAtZero: true,
-        ticks: { color: '#cbd5e1' }, // slategrey
-        grid: { color: 'rgba(148,163,184,0.15)' },
-      },
-      x: {
-        ticks: { color: '#cbd5e1' },
-        grid: { display: false },
+        ticks: { color: '#b8eaff' },
+        grid: { color: 'rgba(255,255,255,0.07)' },
       },
     },
   };
 
   return (
-    <div
-      className={`bg-white/5 backdrop-blur-xl border border-violet-700/40 rounded-2xl shadow-[0_0_60px_-20px_rgba(218,68,255,0.35)]
-      ${compact ? 'p-4' : 'p-5'}`}
-    >
-      <h2 className="text-xl font-bold text-cyan mb-4">📊 Transaction Chart</h2>
-      <Bar data={data} options={options} />
+    <div className="bg-white/5 backdrop-blur-xl border border-violet-700/40 rounded-2xl p-5 shadow-[0_0_60px_-20px_rgba(218,68,255,0.35)]">
+      <h2 className="text-xl font-bold text-cyan mb-4">📈 Transaction Chart</h2>
+      <div style={{ height: 280 }}>
+        <Line data={data} options={options} />
+      </div>
     </div>
   );
 }
