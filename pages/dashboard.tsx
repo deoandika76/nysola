@@ -1,4 +1,4 @@
-// pages/dashboard.tsx
+// pages/dashboard.tsx,
 import { useEffect, useState } from 'react';
 import FullLayout from '../components/FullLayout';
 import DashboardCard from '../components/DashboardCard';
