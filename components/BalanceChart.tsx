@@ -1,4 +1,4 @@
-// components/BalanceChart.tsx
+// components/BalanceChart.tsx/
 'use client';
 
 import { useEffect, useState } from 'react';
