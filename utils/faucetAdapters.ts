@@ -1,4 +1,4 @@
-// utils/faucetAdapters.ts
+// utils/faucetAdapters.ts/
 
 // ===== Types =====
 export type FaucetChain =
