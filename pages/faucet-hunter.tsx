@@ -2,35 +2,51 @@
 import { useEffect, useState } from 'react';
 import FullLayout from '@/components/FullLayout';
 import { fetchWallets } from '@/firebase';
-import { adapters } from '@/utils/faucetAdapters';
+import { supportedChains, FaucetChain } from '@/utils/faucetAdapters';
 
 type W = { address: string };
 
 export default function FaucetHunterPage() {
   const [wallets, setWallets] = useState<W[]>([]);
+  const [selectedWallet, setSelectedWallet] = useState<string>('');
+  const [selectedChain, setSelectedChain] = useState<FaucetChain>('sepolia');
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<string>('');
 
   useEffect(() => {
     (async () => {
-      const w = await fetchWallets();
-      setWallets(w);
+      try {
+        const wl = await fetchWallets();
+        setWallets(wl);
+        if (wl.length > 0) setSelectedWallet(wl[0].address);
+      } catch (e: any) {
+        setMsg(`Gagal load wallets: ${e?.message || e}`);
+      }
     })();
   }, []);
 
-  const queue = async (address: string, chain: string) => {
-    setLoading(true); setMsg('');
+  const enqueue = async () => {
+    if (!selectedWallet) {
+      setMsg('Pilih wallet dulu.');
+      return;
+    }
+    setLoading(true);
+    setMsg('');
     try {
-      const res = await fetch('/api/faucet/queue', {
+      const res = await fetch('/api/enqueue-faucet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ wallet: address, chain }),
+        body: JSON.stringify({
+          chain: selectedChain,
+          wallet: selectedWallet,
+        }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'Failed');
-      setMsg(`✅ Queued ${chain.toUpperCase()} for ${address}`);
+      if (!res.ok) throw new Error(data?.error || 'enqueue_failed');
+
+      setMsg(`✅ Enqueued: ${selectedChain} → ${selectedWallet.slice(0, 6)}...`);
     } catch (e: any) {
-      setMsg(`❌ ${e.message}`);
+      setMsg(`❌ Enqueue error: ${e?.message || e}`);
     } finally {
       setLoading(false);
     }
@@ -38,45 +54,71 @@ export default function FaucetHunterPage() {
 
   return (
     <FullLayout title="Faucet Hunter">
-      <h1 className="text-3xl font-bold text-cyan mb-6">🚰 Faucet Hunter</h1>
-      <p className="text-gray-300 mb-6">
-        Banyak faucet minta captcha. Sistem ini **mengantrikan** wallet kamu; kalau faucet-nya captcha-less bakal auto jalan.
-        Kalau butuh manual, klik link faucet di kartu di bawah.
-      </p>
+      <h1 className="text-3xl font-bold text-cyan text-center mb-8">🚰 Faucet Hunter</h1>
 
-      {msg && <div className="mb-4 text-white">{msg}</div>}
+      <div className="max-w-2xl mx-auto space-y-5 bg-black/40 backdrop-blur-md border border-violet-500/40 rounded-xl p-6">
+        {/* Wallet select */}
+        <div>
+          <label className="block text-sm text-gray-300 mb-1">Wallet</label>
+          <select
+            value={selectedWallet}
+            onChange={(e) => setSelectedWallet(e.target.value)}
+            className="w-full bg-black/50 border border-gray-700 rounded-lg p-2 text-white"
+          >
+            {wallets.map((w) => (
+              <option key={w.address} value={w.address}>
+                {w.address}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      <div className="grid gap-6">
-        {wallets.map((w) => (
-          <div key={w.address} className="bg-black/50 backdrop-blur-md border border-violet-600 rounded-xl p-4">
-            <p className="font-mono text-sm mb-3 text-gray-200">{w.address}</p>
-            <div className="flex flex-wrap gap-3">
-              {adapters.map((a) => (
-                <div key={`${w.address}-${a.chain}`} className="bg-carbon/60 rounded-lg p-3 border border-gray-700">
-                  <p className="text-white text-sm mb-2">{a.name}</p>
-                  <div className="flex items-center gap-2">
-                    <button
-                      disabled={loading}
-                      onClick={() => queue(w.address, a.chain)}
-                      className="px-3 py-1 rounded bg-cyan text-black hover:bg-orchid transition disabled:opacity-50"
-                    >
-                      Queue
-                    </button>
-                    {!a.captchaLess && a.externalUrl && (
-                      <a
-                        href={a.externalUrl}
-                        target="_blank"
-                        className="px-3 py-1 rounded bg-black/40 border border-violet-500 text-white hover:bg-black/60"
-                      >
-                        Open Faucet
-                      </a>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+        {/* Chain select */}
+        <div>
+          <label className="block text-sm text-gray-300 mb-1">Chain (Testnet)</label>
+          <select
+            value={selectedChain}
+            onChange={(e) => setSelectedChain(e.target.value as FaucetChain)}
+            className="w-full bg-black/50 border border-gray-700 rounded-lg p-2 text-white"
+          >
+            {supportedChains.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={enqueue}
+            disabled={loading || !selectedWallet}
+            className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-pink-600 hover:to-purple-600 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
+          >
+            {loading ? 'Queuing…' : '➕ Enqueue Faucet Job'}
+          </button>
+
+          <a
+            href="/api/cron-execute?run=faucet"
+            className="text-cyan underline hover:text-cyan-300"
+            title="Trigger worker sekali (manual)"
+          >
+            Run 1 Job (Manual)
+          </a>
+        </div>
+
+        {/* Message */}
+        {msg && (
+          <div className="text-sm text-gray-200 bg-black/40 border border-gray-700 rounded p-3">
+            {msg}
           </div>
-        ))}
+        )}
+
+        <p className="text-xs text-gray-400">
+          Tip: banyak faucet testnet butuh captcha → adapter menandai <em>manual</em>.
+          Kita tetap antrikan job supaya worker mencatat hasil (OK/Pending/Manual).
+        </p>
       </div>
     </FullLayout>
   );
