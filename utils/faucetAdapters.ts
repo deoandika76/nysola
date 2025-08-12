@@ -116,6 +116,8 @@ const ADAPTERS: FaucetAdapter[] = [
   // genericHttpAdapter,
 ];
 
+export const adapters: Readonly<FaucetAdapter[]> = ADAPTERS;
+export const supportedChains: Readonly<FaucetChain[]> = ADAPTERS.map(a => a.chain);
 export function getAdapterByChain(chain: FaucetChain): FaucetAdapter | undefined {
   // cari adapter yang chain-nya sama persis
   const exact = ADAPTERS.find((a) => a.chain === chain);
