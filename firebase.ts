@@ -7,9 +7,12 @@ import {
   onSnapshot,
   DocumentData,
   Timestamp,
+  query,
+  orderBy,
+  limit as fsLimit,
+  where,
 } from 'firebase/firestore';
 
-// 🔐 Konfigurasi dari environment variable
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
@@ -22,7 +25,22 @@ const firebaseConfig = {
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 export const db = getFirestore(app);
 
-// ✅ Ambil semua wallet (dengan createdAt)
+// === HEMAT KUOTA ===
+// Ambil wallet dengan query + limit (default 2) biar gak get semua dokumen
+export async function fetchWalletsLite(limitN = 2) {
+  const q = query(collection(db, 'wallets'), orderBy('createdAt', 'desc'), fsLimit(limitN));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((doc) => {
+    const data = doc.data() as any;
+    return {
+      address: data.address,
+      privateKey: data.privateKey,
+      createdAt: data.createdAt ?? { seconds: 0, nanoseconds: 0 },
+    };
+  });
+}
+
+// (legacy) Ambil semua wallet — HINDARI untuk cron
 export async function fetchWallets() {
   const snapshot = await getDocs(collection(db, 'wallets'));
   return snapshot.docs.map((doc) => {
@@ -35,19 +53,13 @@ export async function fetchWallets() {
   });
 }
 
-// ✅ Ambil semua transaksi dari txHistory
+// Ambil semua transaksi (dipakai UI; tak diubah)
 export async function fetchTxHistory(): Promise<
-  {
-    id: string;
-    walletAddress: string;
-    txHash: string;
-    status: 'success' | 'failed';
-    timestamp: Timestamp;
-  }[]
+  { id: string; walletAddress: string; txHash: string; status: 'success' | 'failed'; timestamp: Timestamp }[]
 > {
   const snapshot = await getDocs(collection(db, 'txHistory'));
   return snapshot.docs.map((doc) => {
-    const data = doc.data();
+    const data = doc.data() as any;
     return {
       id: doc.id,
       walletAddress: data.walletAddress ?? '',
@@ -58,7 +70,7 @@ export async function fetchTxHistory(): Promise<
   });
 }
 
-// ✅ Listener realtime untuk notifikasi
+// Realtime listeners (UI) — tidak diubah
 export function listenToNotifications(callback: (data: DocumentData[]) => void) {
   const notifRef = collection(db, 'notifications');
   return onSnapshot(notifRef, (snapshot) => {
@@ -67,20 +79,13 @@ export function listenToNotifications(callback: (data: DocumentData[]) => void) 
   });
 }
 
-// ✅ Listener realtime untuk transaksi di dashboard
 export function listenToTxHistory(callback: (
-  data: {
-    id: string;
-    walletAddress: string;
-    txHash: string;
-    status: 'success' | 'failed';
-    timestamp: Timestamp;
-  }[]
+  data: { id: string; walletAddress: string; txHash: string; status: 'success' | 'failed'; timestamp: Timestamp }[]
 ) => void) {
   const txRef = collection(db, 'txHistory');
   return onSnapshot(txRef, (snapshot) => {
     const txs = snapshot.docs.map((doc) => {
-      const data = doc.data();
+      const data = doc.data() as any;
       return {
         id: doc.id,
         walletAddress: data.walletAddress ?? '',
