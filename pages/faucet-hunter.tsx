@@ -1,4 +1,4 @@
-// pages/faucet-hunter.tsx
+// pages/faucet-hunter.tsx/
 import { useEffect, useState } from 'react';
 import FullLayout from '@/components/FullLayout';
 import { fetchWallets } from '@/firebase';
