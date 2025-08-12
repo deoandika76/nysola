@@ -1,131 +1,141 @@
 // utils/faucetAdapters.ts
-// Registry adaptor faucet + tipe data yang dipakai faucetRunner.
 
+// ===== Types =====
 export type FaucetChain =
   | 'sepolia'
   | 'base-sepolia'
-  | 'holesky'
-  | string; // bebas, bisa tambah sendiri
+  | 'arbitrum-sepolia'
+  | 'optimism-sepolia'
+  | 'scroll-sepolia'
+  | 'zeta-testnet';
 
-export type FaucetJob = {
-  wallet: string;   // alamat EVM tujuan topup
+export type FaucetTopupResult =
+  | { ok: true; txHash?: string; note?: string }
+  | { ok: false; error: string; note?: string };
+
+export interface FaucetJob {
   chain: FaucetChain;
-};
-
-// Hasil dari adaptor faucet
-export type FaucetResult = {
-  ok: boolean;        // true = berhasil submit / topup; false = pending/manual/failed
-  txHash?: string;    // kalau ada TX hash dari faucet
-  note?: string;      // catatan kecil (opsional)
-  error?: string;     // pesan error singkat (opsional)
-};
+  wallet: string;
+}
 
 export interface FaucetAdapter {
-  name: string;
-  chain: FaucetChain;
-  requestTopup(wallet: string): Promise<FaucetResult>;
+  name: string;           // label adapter
+  chain: FaucetChain;     // chain yang didukung
+  requestTopup: (wallet: string) => Promise<FaucetTopupResult>;
 }
 
-/**
- * Adaptor DUMMY: selalu balikin "pending/manual".
- * Gunakan kalau faucet aslinya pakai CAPTCHA atau rate limit.
- */
-const dummyManualAdapter = (chain: FaucetChain): FaucetAdapter => ({
-  name: `dummy-${chain}`,
-  chain,
-  async requestTopup(wallet: string): Promise<FaucetResult> {
-    // Di sini kita gak call apa pun biar aman kuota.
+// ===== Helper util (mock delay biar UX kerasa "requesting") =====
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// ===== Adapters (aman untuk serverless & tidak boros kuota) =====
+// NOTE: Banyak faucet public pakai captcha/rate-limit → kita tandai manual.
+// Saat ketemu faucet API yang stabil, tinggal ganti logic requestTopup.
+
+const sepoliaManual: FaucetAdapter = {
+  name: 'Alchemy Sepolia Faucet (manual)',
+  chain: 'sepolia',
+  async requestTopup(wallet) {
+    await wait(300);
     return {
       ok: false,
-      note: `Submit manual di faucet ${chain}. Wallet: ${wallet}`,
-      error: 'manual_captcha_or_rate_limit',
+      error: 'manual_required',
+      note:
+        `Open faucet & claim manually: https://www.alchemy.com/faucets/ethereum-sepolia\n` +
+        `Wallet: ${wallet}`,
     };
-  },
-});
-
-/**
- * Contoh adaptor HTTP generik (jika kamu punya endpoint faucet internal sendiri)
- * Set ENV: FAUCET_GENERIC_URL (mis. service internal kamu)
- * Body: { chain, wallet } → { ok, txHash?, error? }
- */
-const genericHttpAdapter: FaucetAdapter = {
-  name: 'generic-http',
-  chain: 'sepolia', // default, tapi bisa tetap dipakai multi-chain via body
-  async requestTopup(wallet: string): Promise<FaucetResult> {
-    const url = process.env.FAUCET_GENERIC_URL;
-    if (!url) {
-      return {
-        ok: false,
-        error: 'missing_FAUCET_GENERIC_URL',
-        note: 'Set FAUCET_GENERIC_URL agar adaptor HTTP bisa bekerja',
-      };
-    }
-
-    try {
-      const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), 15000); // 15s timeout
-
-      const res = await fetch(url, {
-        method: 'POST',
-        signal: ctrl.signal,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ wallet }),
-      }).catch((e) => {
-        throw new Error(e?.message || 'fetch_failed');
-      });
-
-      clearTimeout(t);
-
-      if (!res.ok) {
-        const txt = await res.text().catch(() => '');
-        return { ok: false, error: `http_${res.status}`, note: txt?.slice(0, 120) };
-      }
-
-      const data = (await res.json().catch(() => ({}))) as {
-        ok?: boolean;
-        txHash?: string;
-        error?: string;
-        note?: string;
-      };
-
-      return {
-        ok: !!data.ok,
-        txHash: data.txHash,
-        error: data.error,
-        note: data.note,
-      };
-    } catch (e: any) {
-      return { ok: false, error: e?.message || 'generic_http_error' };
-    }
   },
 };
 
-/**
- * Registry adapter yang aktif.
- * - Untuk chain umum: duluin dummyManualAdapter (aman kuota).
- * - Kalau kamu nanti punya faucet internal, tinggal ganti ke genericHttpAdapter
- *   atau bikin adapter baru dan daftarin di array ini.
- */
-const ADAPTERS: FaucetAdapter[] = [
-  // ====== Aman dulu (manual) ======
-  dummyManualAdapter('sepolia'),
-  dummyManualAdapter('base-sepolia'),
-  dummyManualAdapter('holesky'),
+const baseSepoliaManual: FaucetAdapter = {
+  name: 'Base Sepolia Faucet (manual)',
+  chain: 'base-sepolia',
+  async requestTopup(wallet) {
+    await wait(300);
+    return {
+      ok: false,
+      error: 'manual_required',
+      note:
+        `Open faucet & claim manually: https://www.alchemy.com/faucets/base-sepolia\n` +
+        `Wallet: ${wallet}`,
+    };
+  },
+};
 
-  // ====== Contoh adaptor HTTP (opsional) ======
-  // genericHttpAdapter,
+const arbSepoliaManual: FaucetAdapter = {
+  name: 'Arbitrum Sepolia Faucet (manual)',
+  chain: 'arbitrum-sepolia',
+  async requestTopup(wallet) {
+    await wait(300);
+    return {
+      ok: false,
+      error: 'manual_required',
+      note:
+        `Open faucet & claim manually: https://www.alchemy.com/faucets/arbitrum-sepolia\n` +
+        `Wallet: ${wallet}`,
+    };
+  },
+};
+
+const opSepoliaManual: FaucetAdapter = {
+  name: 'Optimism Sepolia Faucet (manual)',
+  chain: 'optimism-sepolia',
+  async requestTopup(wallet) {
+    await wait(300);
+    return {
+      ok: false,
+      error: 'manual_required',
+      note:
+        `Open faucet & claim manually: https://www.alchemy.com/faucets/optimism-sepolia\n` +
+        `Wallet: ${wallet}`,
+    };
+  },
+};
+
+const scrollSepoliaManual: FaucetAdapter = {
+  name: 'Scroll Sepolia Faucet (manual)',
+  chain: 'scroll-sepolia',
+  async requestTopup(wallet) {
+    await wait(300);
+    return {
+      ok: false,
+      error: 'manual_required',
+      note:
+        `Open faucet & claim manually: https://sepolia.scroll.io/faucet\n` +
+        `Wallet: ${wallet}`,
+    };
+  },
+};
+
+const zetaManual: FaucetAdapter = {
+  name: 'Zeta Testnet Faucet (manual)',
+  chain: 'zeta-testnet',
+  async requestTopup(wallet) {
+    await wait(300);
+    return {
+      ok: false,
+      error: 'manual_required',
+      note:
+        `Open faucet & claim manually: https://labs.zetachain.com/get-zeta\n` +
+        `Wallet: ${wallet}`,
+    };
+  },
+};
+
+// ===== Registry =====
+const ADAPTERS: Readonly<FaucetAdapter[]> = [
+  sepoliaManual,
+  baseSepoliaManual,
+  arbSepoliaManual,
+  opSepoliaManual,
+  scrollSepoliaManual,
+  zetaManual,
 ];
 
-export const adapters: Readonly<FaucetAdapter[]> = ADAPTERS;
-export const supportedChains: Readonly<FaucetChain[]> = ADAPTERS.map(a => a.chain);
+// Cari adapter by chain
 export function getAdapterByChain(chain: FaucetChain): FaucetAdapter | undefined {
-  // cari adapter yang chain-nya sama persis
-  const exact = ADAPTERS.find((a) => a.chain === chain);
-  if (exact) return exact;
-
-  // fallback: kalau gak ketemu, coba pakai genericHttpAdapter kalau mau
-  // return genericHttpAdapter;
-
-  // default: undefined → biar faucetRunner tulis "adapter_not_found"
-  return undefined;
+  return ADAPTERS.find((a) => a.chain === chain);
 }
+
+// ===== Exports untuk UI =====
+export const adapters: Readonly<FaucetAdapter[]> = ADAPTERS;
+export const supportedChains: Readonly<FaucetChain[]> = ADAPTERS.map((a) => a.chain);
