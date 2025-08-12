@@ -1,4 +1,4 @@
-// pages/api/checkSchedule.ts
+// pages/api/checkSchedule.ts/
 import { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '../../firebase';
 import {
