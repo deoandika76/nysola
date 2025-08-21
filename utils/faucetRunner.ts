@@ -1,4 +1,4 @@
-// utils/faucetRunner.ts/
+﻿// utils/faucetRunner.ts/
 import {
   addDoc,
   collection,
@@ -29,7 +29,7 @@ export async function enqueueFaucetJob(job: FaucetJob) {
 }
 
 /**
- * Ambil 1 job tertua → jalankan adapter → log → hapus dari queue.
+ * Ambil 1 job tertua â†’ jalankan adapter â†’ log â†’ hapus dari queue.
  * Return string ringkas untuk keperluan cron logging.
  */
 export async function processOneFaucetJob() {
@@ -84,7 +84,20 @@ export async function processOneFaucetJob() {
 
   // 6) Balikan ringkas ke caller (cron / endpoint manual)
   if (res.ok) {
-    return `OK: ${adapter.name} → ${job.wallet}${res.txHash ? ` (${res.txHash.slice(0, 10)}…)` : ''}`;
+    return `OK: ${adapter.name} â†’ ${job.wallet}${res.txHash ? ` (${res.txHash.slice(0, 10)}â€¦)` : ''}`;
   }
-  return `PENDING/MANUAL: ${adapter.name} → ${job.wallet}${res.error ? ` [${res.error}]` : ''}`;
+  return `PENDING/MANUAL: ${adapter.name} â†’ ${job.wallet}${res.error ? ` [${res.error}]` : ''}`;
+}
+/**
+ * Process multiple faucet jobs in sequence (untuk cron).
+ * @param maxJobs jumlah maksimal job sekali jalan
+ */
+export async function processBatchFaucetJobs(maxJobs = 5): Promise<string[]> {
+  const out: string[] = [];
+  for (let i = 0; i < maxJobs; i++) {
+    const s = await processOneFaucetJob();
+    if (s === 'Queue empty') { if (i === 0) out.push(s); break; }
+    out.push(s);
+  }
+  return out;
 }

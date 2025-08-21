@@ -1,4 +1,4 @@
-// pages/faucet-hunter.tsx/
+﻿// pages/faucet-hunter.tsx/
 import { useEffect, useState } from 'react';
 import FullLayout from '@/components/FullLayout';
 import { fetchWallets } from '@/firebase';
@@ -12,6 +12,20 @@ export default function FaucetHunterPage() {
   const [selectedChain, setSelectedChain] = useState<FaucetChain>('sepolia');
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<string>('');
+
+  // Trigger serverless endpoint untuk proses 1 job
+  const runOne = async () => {
+    setLoading(true); setMsg('');
+    try {
+      const r = await fetch('/api/run-faucet');
+      const d = await r.json();
+      if (!r.ok) throw new Error(d?.error || 'run_failed');
+      const txt = Array.isArray(d.out) ? d.out.join(' | ') : String(d.out ?? '');
+      setMsg('Runner: ' + txt);
+    } catch (e:any) {
+      setMsg('Run error: ' + (e?.message || e));
+    } finally { setLoading(false); }
+  };
 
   useEffect(() => {
     (async () => {
@@ -44,9 +58,9 @@ export default function FaucetHunterPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'enqueue_failed');
 
-      setMsg(`✅ Enqueued: ${selectedChain} → ${selectedWallet.slice(0, 6)}...`);
+      setMsg(`âœ… Enqueued: ${selectedChain} â†’ ${selectedWallet.slice(0, 6)}...`);
     } catch (e: any) {
-      setMsg(`❌ Enqueue error: ${e?.message || e}`);
+      setMsg(`âŒ Enqueue error: ${e?.message || e}`);
     } finally {
       setLoading(false);
     }
@@ -54,7 +68,7 @@ export default function FaucetHunterPage() {
 
   return (
     <FullLayout title="Faucet Hunter">
-      <h1 className="text-3xl font-bold text-cyan text-center mb-8">🚰 Faucet Hunter</h1>
+      <h1 className="text-3xl font-bold text-cyan text-center mb-8">ðŸš° Faucet Hunter</h1>
 
       <div className="max-w-2xl mx-auto space-y-5 bg-black/40 backdrop-blur-md border border-violet-500/40 rounded-xl p-6">
         {/* Wallet select */}
@@ -96,7 +110,7 @@ export default function FaucetHunterPage() {
             disabled={loading || !selectedWallet}
             className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-pink-600 hover:to-purple-600 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
           >
-            {loading ? 'Queuing…' : '➕ Enqueue Faucet Job'}
+            {loading ? 'Queuingâ€¦' : 'âž• Enqueue Faucet Job'}
           </button>
 
           <a
@@ -116,10 +130,11 @@ export default function FaucetHunterPage() {
         )}
 
         <p className="text-xs text-gray-400">
-          Tip: banyak faucet testnet butuh captcha → adapter menandai <em>manual</em>.
+          Tip: banyak faucet testnet butuh captcha â†’ adapter menandai <em>manual</em>.
           Kita tetap antrikan job supaya worker mencatat hasil (OK/Pending/Manual).
         </p>
       </div>
     </FullLayout>
   );
 }
+

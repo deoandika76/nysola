@@ -1,0 +1,17 @@
+﻿name: Cron Faucet Runner
+on:
+  schedule:
+    - cron: "*/30 * * * *"  # tiap 30 menit
+
+jobs:
+  run-faucet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call /api/run-faucet
+        env:
+          FAUCET_URL: ${{ secrets.RUN_FAUCET_ENDPOINT }}
+        run: |
+          if [ -z "$FAUCET_URL" ]; then
+            echo "Missing RUN_FAUCET_ENDPOINT secret"; exit 1;
+          fi
+          curl -sS -X GET "$FAUCET_URL" | tee faucet-run.log

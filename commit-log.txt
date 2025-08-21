@@ -1,0 +1,43 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20250821081839
+Username: DEO-ANDIKA\deoan
+RunAs User: DEO-ANDIKA\deoan
+Configuration Name: 
+Machine: DEO-ANDIKA (Microsoft Windows NT 10.0.26100.0)
+Host Application: PowerShell.exe -noexit -WorkingDirectory D:\Nysolagent
+Process ID: 24696
+PSVersion: 5.1.26100.4768
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.4768
+BuildVersion: 10.0.26100.4768
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is .\commit-log.txt
+PS D:\nysola> # update repository dulu
+PS D:\nysola> git pull origin main | Tee-Object -FilePath .\git-pull.log
+Already up to date.
+PS D:\nysola> # terapkan perubahan dari patch file
+PS D:\nysola> git apply .\upgrade_patch.diff | Tee-Object -FilePath .\git-apply.log
+PS D:\nysola> # tambahkan file baru dan perubahan ke staging
+PS D:\nysola> git add .
+
+PS D:\nysola> # commit dengan pesan jelas
+PS D:\nysola> git commit -m "Upgrade faucet runner: run-faucet endpoint, batch processing & cron" | Tee-Object -FilePath .\git-commit.log
+[main ff9e8dcc] Upgrade faucet runner: run-faucet endpoint, batch processing & cron
+ 4 files changed, 136 insertions(+)
+ create mode 100644 commit-log.txt
+ create mode 100644 git-pull.log
+ create mode 100644 run-all.ps1
+ create mode 100644 upgrade_patch.diff
+PS D:\nysola> # push ke GitHub (butuh autentikasi – masukkan PAT/token bila diminta)
+PS D:\nysola> git push | Tee-Object -FilePath .\git-push.log
+PS D:\nysola> # akhiri logging
+PS D:\nysola> Stop-Transcript
+**********************
+Windows PowerShell transcript end
+End time: 20250821082433
+**********************
