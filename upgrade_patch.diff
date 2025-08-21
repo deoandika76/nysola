@@ -1,0 +1,136 @@
+*** Begin Patch
+*** Add File: pages/api/run-faucet.ts
++// pages/api/run-faucet.ts
++
++import type { NextApiRequest, NextApiResponse } from 'next';
++import { processOneFaucetJob } from '@/utils/faucetRunner';
++
++/**
++ * Endpoint to process one job from the faucet queue.
++ * You can trigger this endpoint manually or via a cron job.
++ */
++export default async function handler(
++  req: NextApiRequest,
++  res: NextApiResponse,
++) {
++  try {
++    const result = await processOneFaucetJob();
++    return res.status(200).json({ ok: true, result });
++  } catch (e: any) {
++    console.error('run-faucet error:', e);
++    return res.status(500).json({ error: e?.message || 'internal_error' });
++  }
++}
+*** End Patch
+*** End Patch
+*** Begin Patch
+*** Update File: utils/faucetRunner.ts
+@@
+ export async function processOneFaucetJob() {
+@@
+ }
++
++/**
++ * Process multiple faucet jobs in sequence.
++ * Useful for cron jobs to handle more than one queued request at a time.
++ *
++ * @param maxJobs maximum number of jobs to process in a single run (default 5)
++ * @returns array of log strings summarising each job processed
++ */
++export async function processQueuedFaucetJobs(maxJobs: number = 5) {
++  const summaries: string[] = [];
++  for (let i = 0; i < maxJobs; i++) {
++    const result = await processOneFaucetJob();
++    if (result === 'Queue empty') break;
++    summaries.push(result);
++  }
++  return summaries;
++}
+*** End Patch
+*** End Patch
+*** Begin Patch
+*** Add File: .github/workflows/cron-faucet.yml
++name: Cron Faucet Runner
++
++on:
++  schedule:
++    # run every 30 minutes
++    - cron: '*/30 * * * *'
++
++jobs:
++  run-faucet:
++    runs-on: ubuntu-latest
++    steps:
++      - name: Call run-faucet endpoint
++        env:
++          FAUCET_URL: ${{ secrets.RUN_FAUCET_ENDPOINT }}
++        run: |
++          if [ -z "$FAUCET_URL" ]; then
++            echo "RUN_FAUCET_ENDPOINT secret not set" && exit 1
++          fi
++          # Hit the run-faucet endpoint; ignore non-success exit codes
++          curl -sS "$FAUCET_URL" || true
+*** End Patch
+*** End Patch
+*** Begin Patch
+*** Update File: pages/faucet-hunter.tsx
+@@
+ export default function FaucetHunterPage() {
+@@
+   const [msg, setMsg] = useState<string>('');
++
++  // Trigger serverless endpoint to process one queued faucet job
++  const runJob = async () => {
++    setLoading(true);
++    setMsg('');
++    try {
++      const res = await fetch('/api/run-faucet');
++      const data = await res.json();
++      if (!res.ok) throw new Error(data?.error || 'run_failed');
++      setMsg(`✅ Run result: ${data.result}`);
++    } catch (e: any) {
++      setMsg(`❌ Run error: ${e?.message || e}`);
++    } finally {
++      setLoading(false);
++    }
++  };
+@@
+   return (
+@@
+-        {/* Actions */}
++        {/* Actions */}
+@@
+-        <button
+-          onClick={enqueue}
+-          disabled={loading}
+-          className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded mt-4"
+-        >
+-          {loading ? 'Queuing…' : '➕ Enqueue Faucet Job'}
+-        </button>
+-
+-        <button
+-          onClick={() => {
+-            // call API to process one job manually
+-            fetch('/api/run-faucet');
+-          }}
+-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2"
+-        >
+-          Run 1 Job (Manual)
+-        </button>
++        <button
++          onClick={enqueue}
++          disabled={loading}
++          className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded mt-4"
++        >
++          {loading ? 'Queuing…' : '➕ Enqueue Faucet Job'}
++        </button>
++
++        <button
++          onClick={runJob}
++          disabled={loading}
++          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2"
++        >
++          {loading ? 'Running…' : '⚙️ Process 1 Job'}
++        </button>
+*** End Patch
+*** End Patch
